@@ -30,19 +30,6 @@
                         <span>Kelas</span>
                     </a>
 
-
-
-                    {{-- <a href="#"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm 
-                           {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                        <i data-lucide="users" class="w-4 h-4"></i><span>Laporan</span>
-                    </a> --}}
-
-                    {{-- <a href="#" @click.prevent="changeTab('kelas')"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm"
-                        :class="{ 'active': activeTab === 'kelas' }"
-                        :aria-current="activeTab === 'kelas' ? 'page' : undefined"><i data-lucide="building"
-                            class="w-4 h-4"></i><span>Kelas</span></a> --}}
                     <a href="#" @click.prevent="changeTab('laporan')"
                         class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm"
                         :class="{ 'active': activeTab === 'laporan' }"
