@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relasi ke users
             $table->date('tanggal');
-            $table->time('jam_masuk');
+            $table->time('jam_masuk')->nullable();
             $table->enum('status', ['Hadir', 'Telat', 'Izin', 'Sakit', 'Absen']);
             $table->decimal('latitude', 10, 7)->nullable(); // Presisi untuk GPS
             $table->decimal('longitude', 10, 7)->nullable();
