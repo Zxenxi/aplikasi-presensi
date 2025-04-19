@@ -40,15 +40,15 @@ class AttendanceController extends Controller
         }
 
         // Cek apakah waktu presensi masih dibuka
-        $now = Carbon::now();
-        $startTime = Carbon::parse($settings->attendance_start_time);
-        $endTime = Carbon::parse($settings->attendance_end_time);
+        // $now = Carbon::now();
+        // $startTime = Carbon::parse($settings->attendance_start_time);
+        // $endTime = Carbon::parse($settings->attendance_end_time);
 
-        // Beri sedikit buffer waktu sebelum mulai dan setelah selesai (misal 5 menit)
-        if (!$now->between($startTime->copy()->subMinutes(5), $endTime->copy()->addMinutes(5))) {
-             return redirect()->route('dashboard') // Redirect ke dashboard biasa
-                             ->with('error', 'Presensi belum dibuka atau sudah ditutup untuk saat ini.');
-        }
+        // // Beri sedikit buffer waktu sebelum mulai dan setelah selesai (misal 5 menit)
+        // if (!$now->between($startTime->copy()->subMinutes(5), $endTime->copy()->addMinutes(5))) {
+        //      return redirect()->route('attendance.create') // Redirect ke dashboard biasa
+        //                      ->with('error', 'Presensi belum dibuka atau sudah ditutup untuk saat ini.');
+        // }
 
 
         return view('attendance.create');
@@ -76,7 +76,7 @@ class AttendanceController extends Controller
         $startTime = Carbon::parse($settings->attendance_start_time);
         $endTime = Carbon::parse($settings->attendance_end_time);
         if (!$now->between($startTime, $endTime)) {
-             return redirect()->route('dashboard')
+             return redirect()->route('attendance.history')
                              ->with('error', 'Waktu presensi sudah habis.');
         }
 
@@ -100,9 +100,9 @@ class AttendanceController extends Controller
         $is_location_valid = $distance <= $settings->allowed_radius_meters;
 
          // Jika lokasi tidak valid, bisa ditolak atau tetap disimpan dengan tanda
-        // if (!$is_location_valid) {
-        //     return back()->with('error', 'Presensi gagal: Anda berada di luar area sekolah.');
-        // }
+        if (!$is_location_valid) {
+            return back()->with('error', 'Presensi gagal: Anda berada di luar area sekolah.');
+        }
 
 
         // 2. Simpan Gambar Selfie
