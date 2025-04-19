@@ -3,13 +3,13 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -86,4 +86,43 @@ Route::middleware(['auth'])->group(function () {
 
 }); // Akhir middleware auth
 
+use App\Http\Controllers\Admin\SettingController as AdminSettingController; // Tambahkan use statement
+
+// Di dalam Route::prefix('admin')->name('admin.')->middleware(['role:Super Admin,Petugas Piket'])->group(...)
+
+    // ... (rute dashboard, users, classes) ...
+
+    // --- Pengaturan Aplikasi (Hanya Super Admin) ---
+    Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit')->middleware('role:Super Admin');
+    Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update')->middleware('role:Super Admin');
+
+    // ... (rute reports nanti) ...
+
+    use App\Http\Controllers\AttendanceController; // Tambahkan use statement
+
+    Route::middleware(['auth'])->group(function () {
+    
+        // ... (rute profil, dashboard default, grup admin) ...
+    
+        // --- Rute Presensi (Guru & Siswa) ---
+        Route::prefix('presensi')->name('attendance.')->middleware('role:Guru,Siswa')->group(function () {
+            // Halaman form presensi
+            Route::get('/buat', [AttendanceController::class, 'create'])->name('create');
+            // Proses simpan presensi
+            Route::post('/', [AttendanceController::class, 'store'])->name('store');
+            // Halaman riwayat presensi
+            Route::get('/riwayat', [AttendanceController::class, 'index'])->name('history');
+        });
+    
+    }); // Akhir middleware auth
+
+
+    use App\Http\Controllers\Admin\ReportController as AdminReportController; // Tambahkan use statement
+
+// Di dalam Route::prefix('admin')->name('admin.')->middleware(['role:Super Admin,Petugas Piket'])->group(...)
+
+    // ... (rute dashboard, users, classes, settings) ...
+
+    // --- Laporan Presensi (Admin & Petugas Piket) ---
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
 require __DIR__.'/auth.php'; // Rute otentikasi Breeze

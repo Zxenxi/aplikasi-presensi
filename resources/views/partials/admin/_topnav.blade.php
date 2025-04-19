@@ -21,4 +21,5 @@
         class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm"
         :class="{ 'active': activeTab === 'laporan' }" :aria-current="activeTab === 'laporan' ? 'page' : undefined"><i
             data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Laporan</span></a>
+
 </nav>

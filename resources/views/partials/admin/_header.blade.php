@@ -29,12 +29,15 @@
                         <i data-lucide="building" class="w-4 h-4"></i>
                         <span>Kelas</span>
                     </a>
-
-                    <a href="#" @click.prevent="changeTab('laporan')"
+                    <a href="{{ route('reports.index') }}"
+                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Laporan</span>
+                    </a>
+                    {{-- <a href="#" @click.prevent="changeTab('laporan')"
                         class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm"
                         :class="{ 'active': activeTab === 'laporan' }"
                         :aria-current="activeTab === 'laporan' ? 'page' : undefined"><i data-lucide="bar-chart-3"
-                            class="w-4 h-4"></i><span>Laporan</span></a>
+                            class="w-4 h-4"></i><span>Laporan</span></a> --}}
                 </nav>
             </div>
             <div class="hidden sm:flex sm:items-center sm:ml-6">
@@ -64,10 +67,18 @@
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem" tabindex="-1"><i data-lucide="user-circle"
                                     class="w-4 h-4 mr-2"></i>Profil Anda</a>
-                            <a href="#"
+                            {{-- Contoh di _topnav.blade.php atau dropdown user --}}
+                            @if (auth()->user()->isSuperAdmin())
+                                <a href="{{ route('settings.edit') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    {{ request()->routeIs('admin.settings.edit') ? 'active' : '' }}">
+                                    <i data-lucide="settings" class="w-4 h-4 mr-2"></i><span>Pengaturan</span>
+                                </a>
+                            @endif
+                            {{-- <a href="#"
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem" tabindex="-1"><i data-lucide="settings"
-                                    class="w-4 h-4 mr-2"></i>Pengaturan</a>
+                                    class="w-4 h-4 mr-2"></i>Pengaturan</a> --}}
                             <form method="POST" action="{{ route('logout') }}" x-show="isUserMenuOpen">
                                 @csrf
                                 <a href="{{ route('logout') }}"
@@ -114,13 +125,18 @@
                 <i data-lucide="building" class="w-5 h-5"></i>
                 <span>Kelas</span>
             </a>
+            <a href="{{ route('reports.index') }}"
+                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <span>Laporan</span>
+            </a>
 
-            <a href="#" @click.prevent="changeTab('laporan')"
+            {{-- <a href="#" @click.prevent="changeTab('laporan')"
                 class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
                 :class="activeTab === 'laporan' ? 'bg-indigo-50 text-indigo-700' :
                     'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
                 :aria-current="activeTab === 'laporan' ? 'page' : undefined"><i data-lucide="bar-chart-3"
-                    class="w-5 h-5"></i><span>Laporan</span></a>
+                    class="w-5 h-5"></i><span>Laporan</span></a> --}}
             <div class="border-t border-gray-100 pt-3 mt-2">
                 <a href="#"
                     class="flex items-center space-x-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"><i

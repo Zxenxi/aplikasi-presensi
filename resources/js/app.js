@@ -2,23 +2,23 @@
 import "./bootstrap"; // Bawaan Laravel
 
 import Alpine from "alpinejs";
-import { createIcons, icons, TestTube } from "lucide"; // Import Lucide
-// resources/js/app.js (lanjutan)
+import { createIcons, icons } from "lucide"; // Import Lucide (TestTube tidak perlu jika tidak dipakai)
 import Chart from "chart.js/auto"; // Import Chart.js
-window.Chart = Chart; // Buat global jika script chart terpisah
-// Pindahkan fungsi initCharts, getChartColors, dll. ke sini atau file terpisah
 
+window.Chart = Chart; // Buat global jika script chart terpisah
 window.Alpine = Alpine;
 
-// === Fungsi Alpine.js Anda ===
+// === Fungsi Alpine.js Anda (Sudah Diperbaiki) ===
 function presensiAppData() {
-    // Salin semua isi fungsi dari <script> di index versi 2.html
-    // KECUALI: Bagian data hardcoded (users, classes) - ini akan dari Laravel
-    // Contoh:
     return {
-        // ... (state lain seperti activeTab, isMobileMenuOpen, dll) ...
+        // --- State Aplikasi Umum ---
+        activeTab: "dashboard", // Atau ambil dari URL/data backend nanti
+        isMobileMenuOpen: false,
+        isUserMenuOpen: false,
+        dashboardUserType: "semua",
+        // ... state lain (tanpa data users/classes hardcoded) ...
 
-        // State untuk Modal Kelas
+        // --- State untuk Modal Kelas ---
         isClassModalOpen: false,
         isEditingClass: false,
         // Pastikan properti sesuai dengan yang digunakan di x-model dan saat pass data dari Blade
@@ -27,18 +27,47 @@ function presensiAppData() {
             nama: "",
             tingkat: "",
             jurusan: "",
-            waliKelasId: null,
-            jumlahSiswa: 0,
+            waliKelasId: null, // Gunakan null untuk representasi data, akan diubah jadi "" untuk select jika perlu
+            jumlahSiswa: 0, // Ini mungkin tidak di-pass dari create, hanya relevan untuk edit
         },
+
+        // --- Methods Aplikasi Umum ---
+        init() {
+            console.log("Alpine component initialized.");
+            this.$nextTick(() => {
+                this.renderIcons(); // Panggil renderIcons saat init
+                console.log("Initial icons rendered.");
+            });
+            // ... sisa init() jika ada ...
+            // PENTING: Hapus this.users = [...] dan this.classes = [...] jika ada dari versi sebelumnya
+        },
+
+        renderIcons() {
+            console.log("Rendering Lucide icons...");
+            try {
+                // Panggil createIcons dari Lucide
+                createIcons({ icons });
+            } catch (e) {
+                console.error("Error rendering Lucide icons:", e);
+            }
+        },
+
+        changeTab(tabName) {
+            this.activeTab = tabName;
+            // Mungkin perlu render ulang icon/chart jika konten tab berubah drastis
+            this.$nextTick(() => this.renderIcons());
+        },
+
+        // --- Methods untuk Modal Kelas ---
 
         // Fungsi untuk mereset data form modal
         resetCurrentClass() {
             this.currentClass = {
                 id: null,
                 nama: "",
-                tingkat: "",
+                tingkat: "", // Reset ke string kosong atau nilai default select
                 jurusan: "",
-                waliKelasId: null,
+                waliKelasId: "", // Reset ke string kosong agar cocok dengan opsi "-- Tidak Ada --"
                 jumlahSiswa: 0,
             };
         },
@@ -50,13 +79,14 @@ function presensiAppData() {
             const form = document.getElementById("classModalForm");
             const methodInput = document.getElementById("classModalMethod");
             if (form && methodInput) {
-                // Ganti 'YOUR_APP_URL' dengan URL aplikasi Anda atau gunakan cara lain (Ziggy)
-                form.action = "/admin/classes"; // Sesuaikan dengan route('admin.classes.store')
+                // URL untuk store (sesuaikan jika base path aplikasi berbeda)
+                form.action = "/admin/classes"; // Pastikan route ini benar
                 methodInput.value = "POST";
             } else {
                 console.error(
-                    "Form atau Method Input Modal Kelas tidak ditemukan!"
+                    "Form (#classModalForm) atau Method Input (#classModalMethod) Modal Kelas tidak ditemukan!"
                 );
+                return; // Hentikan jika elemen penting tidak ada
             }
             this.isClassModalOpen = true;
             // Fokus ke input pertama setelah modal terbuka
@@ -68,22 +98,45 @@ function presensiAppData() {
         // Fungsi untuk membuka modal edit (menerima data dari Blade)
         openEditClassModal(classData) {
             // Isi state Alpine dengan data dari parameter
-            this.currentClass = { ...classData };
-            // Pastikan waliKelasId adalah string kosong jika null dari Blade
-            if (this.currentClass.waliKelasId === null) {
+            // Gunakan spread operator untuk menyalin properti
+            this.currentClass = {
+                ...this.currentClass, // Ambil struktur default (jika ada properti tambahan)
+                ...classData, // Timpa dengan data yang di-pass
+            };
+
+            // Pastikan waliKelasId adalah string kosong jika null/undefined dari Blade agar cocok select option
+            if (
+                this.currentClass.waliKelasId === null ||
+                this.currentClass.waliKelasId === undefined
+            ) {
                 this.currentClass.waliKelasId = "";
+            } else {
+                // Pastikan tipenya string jika ID dari blade berupa number agar x-model select bekerja baik
+                this.currentClass.waliKelasId = String(
+                    this.currentClass.waliKelasId
+                );
             }
+
+            // Pastikan tingkat juga string jika dari blade berupa number
+            if (
+                this.currentClass.tingkat !== null &&
+                this.currentClass.tingkat !== undefined
+            ) {
+                this.currentClass.tingkat = String(this.currentClass.tingkat);
+            }
+
             this.isEditingClass = true;
             const form = document.getElementById("classModalForm");
             const methodInput = document.getElementById("classModalMethod");
             if (form && methodInput) {
-                // Ganti 'YOUR_APP_URL' dengan URL aplikasi Anda
-                form.action = `/admin/classes/${classData.id}`; // Sesuaikan dengan route('admin.classes.update', id)
+                // URL untuk update (sesuaikan jika base path berbeda)
+                form.action = `/admin/classes/${classData.id}`; // Pastikan route ini benar
                 methodInput.value = "PUT";
             } else {
                 console.error(
-                    "Form atau Method Input Modal Kelas tidak ditemukan!"
+                    "Form (#classModalForm) atau Method Input (#classModalMethod) Modal Kelas tidak ditemukan!"
                 );
+                return; // Hentikan jika elemen penting tidak ada
             }
             this.isClassModalOpen = true;
             this.$nextTick(() => {
@@ -94,9 +147,8 @@ function presensiAppData() {
         // Fungsi untuk menutup modal
         closeClassModal() {
             this.isClassModalOpen = false;
-            // Tidak perlu reset di sini karena direset saat buka create
-            // this.resetCurrentClass();
-            // this.isEditingClass = false;
+            // Sebaiknya reset form saat modal ditutup, atau minimal saat dibuka untuk create
+            // this.resetCurrentClass(); // Anda bisa uncomment ini jika ingin reset saat tutup
         },
 
         // Fungsi yang dipanggil saat form modal di-submit
@@ -105,77 +157,22 @@ function presensiAppData() {
             const form = document.getElementById("classModalForm");
             if (form) {
                 // Lakukan submit form secara manual
+                // Action dan Method sudah diatur saat modal dibuka
                 form.submit();
-                // Opsional: nonaktifkan tombol simpan, tampilkan loading
-                // Opsional: tutup modal setelah submit (atau tunggu halaman reload)
-                // this.closeClassModal();
+
+                // Opsional: Anda bisa menonaktifkan tombol simpan di sini
+                // atau menampilkan indikator loading
             } else {
-                console.error("Form Modal Kelas tidak ditemukan saat save!");
+                console.error(
+                    "Form Modal Kelas (#classModalForm) tidak ditemukan saat save!"
+                );
             }
         },
 
-        // ... (sisa fungsi Alpine lainnya seperti init, renderIcons, changeTab, dll.)
-        activeTab: "dashboard", // Atau ambil dari URL/data backend nanti
-        isMobileMenuOpen: false,
-        isUserMenuOpen: false,
-        dashboardUserType: "semua",
-        // ... state lain (tanpa data users/classes) ...
-
-        // ... methods (init, renderIcons, changeTab, dll.) ...
-        init() {
-            console.log("Alpine component initialized.");
-            this.$nextTick(() => {
-                this.renderIcons(); // Panggil renderIcons saat init
-                console.log("Initial icons rendered.");
-            });
-            // ... sisa init() ...
-            // PENTING: Hapus this.users = [...] dan this.classes = [...]
-        },
-        renderIcons() {
-            console.log("Rendering Lucide icons...");
-            try {
-                // Panggil createIcons dari Lucide
-                createIcons({ icons });
-            } catch (e) {
-                console.error("Error rendering Lucide icons:", e);
-            }
-        },
-        // ... sisa methods ...
-        // PENTING: Hapus/modifikasi method yg bergantung pada data user/kelas hardcoded (misal filteredUsers, saveClass)
-        // Ini akan ditangani Laravel atau dimodifikasi nanti
-
-        // Contoh modifikasi (data kelas akan dari Blade, modal dikontrol saja)
-        isClassModalOpen: false,
-        isEditingClass: false,
-        currentClass: {
-            id: null,
-            nama: "",
-            tingkat: "",
-            jurusan: "",
-            waliKelasId: null,
-            jumlahSiswa: 0,
-        }, // Sesuaikan field
-        openCreateClassModal() {
-            /* ... logika reset & buka modal ... */ this.isClassModalOpen = true;
-        },
-        openEditClassModal(classData) {
-            /* ... set currentClass dari data yg di-pass, buka modal ...*/ this.currentClass =
-                classData;
-            this.isEditingClass = true;
-            this.isClassModalOpen = true;
-        },
-        closeClassModal() {
-            this.isClassModalOpen = false;
-            this.isEditingClass = false; /* reset currentClass */
-        },
-        saveClass() {
-            // Submit form-nya secara manual (akan dibuat di Blade)
-            // Kita tidak proses save di JS lagi
-            // Contoh: document.getElementById('classModalForm').submit();
-            console.log("Submit form triggered from Alpine...");
-        },
+        // ... (sisa fungsi Alpine lainnya jika ada) ...
     };
 }
+
 // Daftarkan komponen Alpine
 document.addEventListener("alpine:init", () => {
     Alpine.data("presensiApp", presensiAppData);
@@ -184,8 +181,6 @@ document.addEventListener("alpine:init", () => {
 // Mulai Alpine
 Alpine.start();
 
-// Panggil createIcons sekali lagi setelah DOM siap (jika perlu)
-// Atau pastikan dipanggil di Alpine init()
+// Panggil createIcons sekali lagi setelah DOM siap jika diperlukan di luar komponen Alpine
 // createIcons({ icons });
-
-// Test pakai js yang original
+// Namun, pemanggilan di init() dalam komponen biasanya sudah cukup jika ikon ada di dalam x-data.
