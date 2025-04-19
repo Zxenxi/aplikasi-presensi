@@ -97,24 +97,24 @@
     </div>
     <div x-show="isMobileMenuOpen" x-cloak class="sm:hidden border-t border-gray-200" id="mobile-menu" x-transition>
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="#" @click.prevent="changeTab('dashboard')"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
-                :class="activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700' :
-                    'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-                :aria-current="activeTab === 'dashboard' ? 'page' : undefined"><i data-lucide="layout-dashboard"
-                    class="w-5 h-5"></i><span>Dashboard</span></a>
-            <a href="#" @click.prevent="changeTab('pengguna')"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
-                :class="activeTab === 'pengguna' ? 'bg-indigo-50 text-indigo-700' :
-                    'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-                :aria-current="activeTab === 'pengguna' ? 'page' : undefined"><i data-lucide="users"
-                    class="w-5 h-5"></i><span>Pengguna</span></a>
-            <a href="#" @click.prevent="changeTab('kelas')"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
-                :class="activeTab === 'kelas' ? 'bg-indigo-50 text-indigo-700' :
-                    'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-                :aria-current="activeTab === 'kelas' ? 'page' : undefined"><i data-lucide="building"
-                    class="w-5 h-5"></i><span>Kelas</span></a>
+            <a href="{{ route('admin.dashboard') }}"
+                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ route('admin.users.index') }}"
+                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span>Pengguna</span>
+            </a>
+
+            <a href="{{ route('admin.classes.index') }}"
+                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i data-lucide="building" class="w-5 h-5"></i>
+                <span>Kelas</span>
+            </a>
+
             <a href="#" @click.prevent="changeTab('laporan')"
                 class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
                 :class="activeTab === 'laporan' ? 'bg-indigo-50 text-indigo-700' :
