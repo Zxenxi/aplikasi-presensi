@@ -11,34 +11,49 @@
                 <span class="ml-2 text-lg font-bold text-gray-800 sm:hidden">Presensi</span>
             </div>
             <div class="hidden md:flex md:absolute md:inset-y-0 md:left-1/2 md:transform md:-translate-x-1/2">
-                <nav class="flex space-x-2" id="top-navigation">
-                    <a href="{{ route('admin.dashboard') }}"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                        <span>Dashboard</span>
-                    </a>
+                @auth
 
-                    <a href="{{ route('admin.users.index') }}"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                        <i data-lucide="users" class="w-4 h-4"></i>
-                        <span>Pengguna</span>
-                    </a>
+                    @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                            <span>Dashboard</span>
+                        </a>
 
-                    <a href="{{ route('admin.classes.index') }}"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
-                        <i data-lucide="building" class="w-4 h-4"></i>
-                        <span>Kelas</span>
-                    </a>
-                    <a href="{{ route('reports.index') }}"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
-                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Laporan</span>
-                    </a>
-                    {{-- <a href="#" @click.prevent="changeTab('laporan')"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm"
-                        :class="{ 'active': activeTab === 'laporan' }"
-                        :aria-current="activeTab === 'laporan' ? 'page' : undefined"><i data-lucide="bar-chart-3"
-                            class="w-4 h-4"></i><span>Laporan</span></a> --}}
-                </nav>
+                        <a href="{{ route('admin.users.index') }}"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            <span>Pengguna</span>
+                        </a>
+
+                        <a href="{{ route('admin.classes.index') }}"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="building" class="w-5 h-5"></i>
+                            <span>Kelas</span>
+                        </a>
+                        <a href="{{ route('reports.index') }}"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                            <span>Laporan</span>
+                        </a>
+                        <a href="{{ route('attendances.index') }}" title="Presensi Manual"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
+                                class="text-xs font-medium">Presensi</span>
+                        </a>
+                        {{-- Link Pengaturan hanya untuk Super Admin --}}
+                    @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
+                        {{-- === Menu untuk Guru & Siswa === --}}
+                        <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
+                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.create') ? 'active' : '' }}">
+                            <i data-lucide="camera" class="w-4 h-4"></i><span>Presensi</span>
+                        </a>
+                        <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
+                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.history') ? 'active' : '' }}">
+                            <i data-lucide="history" class="w-4 h-4"></i><span>Riwayat</span>
+                        </a>
+                    @endif
+                @endauth
             </div>
             <div class="hidden sm:flex sm:items-center sm:ml-6">
                 <div class="flex items-center space-x-3">
@@ -75,10 +90,7 @@
                                     <i data-lucide="settings" class="w-4 h-4 mr-2"></i><span>Pengaturan</span>
                                 </a>
                             @endif
-                            {{-- <a href="#"
-                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                role="menuitem" tabindex="-1"><i data-lucide="settings"
-                                    class="w-4 h-4 mr-2"></i>Pengaturan</a> --}}
+
                             <form method="POST" action="{{ route('logout') }}" x-show="isUserMenuOpen">
                                 @csrf
                                 <a href="{{ route('logout') }}"
@@ -88,9 +100,7 @@
                                     <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>Keluar
                                 </a>
                             </form>
-                            {{-- <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                role="menuitem" tabindex="-1"><i data-lucide="log-out"
-                                    class="w-4 h-4 mr-2"></i>Keluar</a> --}}
+
                         </div>
                     </div>
                 </div>
@@ -101,42 +111,63 @@
                     aria-controls="mobile-menu" :aria-expanded="isMobileMenuOpen.toString()">
                     <span class="sr-only">Buka menu utama</span>
                     <i x-show="!isMobileMenuOpen" data-lucide="menu" class="block h-6 w-6" aria-hidden="true"></i>
-                    <i x-show="isMobileMenuOpen" data-lucide="x" class="block h-6 w-6" x-cloak aria-hidden="true"></i>
+                    <i x-show="isMobileMenuOpen" data-lucide="x" class="block h-6 w-6" x-cloak
+                        aria-hidden="true"></i>
                 </button>
             </div>
         </div>
     </div>
     <div x-show="isMobileMenuOpen" x-cloak class="sm:hidden border-t border-gray-200" id="mobile-menu" x-transition>
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="{{ route('admin.dashboard') }}"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span>Dashboard</span>
-            </a>
+            @auth
 
-            <a href="{{ route('admin.users.index') }}"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span>Pengguna</span>
-            </a>
+                @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span>Dashboard</span>
+                    </a>
 
-            <a href="{{ route('admin.classes.index') }}"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                <i data-lucide="building" class="w-5 h-5"></i>
-                <span>Kelas</span>
-            </a>
-            <a href="{{ route('reports.index') }}"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                <span>Laporan</span>
-            </a>
+                    <a href="{{ route('admin.users.index') }}"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span>Pengguna</span>
+                    </a>
 
-            {{-- <a href="#" @click.prevent="changeTab('laporan')"
-                class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium"
-                :class="activeTab === 'laporan' ? 'bg-indigo-50 text-indigo-700' :
-                    'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-                :aria-current="activeTab === 'laporan' ? 'page' : undefined"><i data-lucide="bar-chart-3"
-                    class="w-5 h-5"></i><span>Laporan</span></a> --}}
+                    <a href="{{ route('admin.classes.index') }}"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="building" class="w-5 h-5"></i>
+                        <span>Kelas</span>
+                    </a>
+                    <a href="{{ route('reports.index') }}"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        <span>Laporan</span>
+                    </a>
+                    <a href="{{ route('attendances.index') }}" title="Presensi Manual"
+                        class="bottom-nav-item flex flex-col items-center justify-center w-1/5 pt-1 {{ request()->routeIs('attendances*') ? 'active' : '' }}">
+                        <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
+                            class="text-xs font-medium">Presensi</span>
+                    </a>
+                    {{-- Link Pengaturan hanya untuk Super Admin --}}
+                    @if (Auth::user()->isSuperAdmin())
+                        <a href="{{ route('settings.edit') }}" title="Pengaturan Aplikasi"
+                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
+                            <i data-lucide="settings" class="w-4 h-4"></i><span>Pengaturan</span>
+                        </a>
+                    @endif
+                @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
+                    {{-- === Menu untuk Guru & Siswa === --}}
+                    <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
+                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.create') ? 'active' : '' }}">
+                        <i data-lucide="camera" class="w-4 h-4"></i><span>Presensi</span>
+                    </a>
+                    <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
+                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.history') ? 'active' : '' }}">
+                        <i data-lucide="history" class="w-4 h-4"></i><span>Riwayat</span>
+                    </a>
+                @endif
+            @endauth
             <div class="border-t border-gray-100 pt-3 mt-2">
                 <a href="#"
                     class="flex items-center space-x-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"><i
