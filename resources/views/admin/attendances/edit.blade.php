@@ -107,11 +107,14 @@
                     <div class="flex justify-end space-x-3 pt-4 border-t">
                         <a href="{{ route('attendances.index') }}" class="btn-secondary">Batal</a>
                         {{-- Tombol Simpan dengan state loading --}}
-                        <button type="submit" x-data="{ submitting: false }" x-on:click="submitting = true" :disabled="submitting"
+                        {{-- <button type="submit" x-data="{ submitting: false }" x-on:click="submitting = true" :disabled="submitting"
                             class="btn-primary">
                             <svg x-show="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">...</svg>
                             <span x-text="submitting ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                        </button> --}}
+                        <button type="submit" class="btn-primary ...">
+                            Simpan Pengguna
                         </button>
                     </div>
                 </form>
