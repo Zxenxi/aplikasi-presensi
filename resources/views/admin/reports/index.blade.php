@@ -88,6 +88,34 @@
 
         {{-- Hasil Laporan --}}
         @isset($results)
+            <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800">Hasil Laporan Presensi ...</h3>
+                    <p class="text-sm text-gray-600 mt-1">Ditemukan {{ $results->count() }} data presensi.</p>
+                </div>
+                {{-- Grup Tombol Export --}}
+                <div class="flex space-x-2">
+                    {{-- Tombol Export Excel --}}
+                    <a href="{{ route('admin.reports.export', $filters) }}" {{-- Kirim filter aktif --}}
+                        class="inline-flex items-center px-3 py-1.5 border border-green-600 text-xs font-medium rounded shadow-sm text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i> Export Excel
+                    </a>
+                    {{-- Tombol Export PDF akan ditambahkan di sini --}}
+                </div>
+            </div>
+            {{-- Di dalam @isset($results) dan di dalam div grup tombol export --}}
+            <div class="flex space-x-2">
+                {{-- Tombol Export Excel --}}
+                <a href="{{ route('reports.export', $filters) }}" class="...">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i> Export Excel
+                </a>
+                {{-- Tombol Export PDF --}}
+                <a href="{{ route('reports.export.pdf', $filters) }}" {{-- Kirim filter aktif --}} target="_blank"
+                    {{-- Buka di tab baru (opsional) --}}
+                    class="inline-flex items-center px-3 py-1.5 border border-red-600 text-xs font-medium rounded shadow-sm text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i> Export PDF
+                </a>
+            </div>
             <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                 <div class="p-4 border-b">
                     <h3 class="text-lg font-medium text-gray-800">
@@ -177,6 +205,7 @@
                     </table>
                 </div>
             </div>
+            {{-- Di dalam @isset($results) --}}
         @else
             {{-- Tampilan jika belum ada filter yang dijalankan --}}
             @if (!empty($filters))

@@ -55,6 +55,7 @@ Route::get('/', function () {
 
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
+// use App\Http\Controllers\Admin\ReportController as AdminReportController;
 
 // ... (use statement lain dan rute auth) ...
 
@@ -78,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update')->middleware('role:Super Admin');
         Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy')->middleware('role:Super Admin');
 
+        // Di dalam Route::prefix('admin')->name('admin.')->middleware(['role:Super Admin,Petugas Piket'])->group(...)
+
+    // ... (rute reports index & export excel) ...
+   
         // ... (rute reports, settings nanti) ...
 
     }); // Akhir grup admin
@@ -125,7 +130,8 @@ use App\Http\Controllers\Admin\SettingController as AdminSettingController; // T
 
     // --- Laporan Presensi (Admin & Petugas Piket) ---
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
-
+ // Rute untuk export PDF
+    Route::get('/reports/export/pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf');
     use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // Tambahkan use jika belum
 
     // Di dalam Route::prefix('admin')->name('admin.')->middleware(['role:Super Admin,Petugas Piket'])->group(...)
@@ -136,18 +142,5 @@ use App\Http\Controllers\Admin\SettingController as AdminSettingController; // T
         Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
         // Route::get('/attendances', [AdminAttendanceController::class,'index'])->name('index');
     
-        // --- Grup Khusus Super Admin ---
-        // Route::middleware('role:Super Admin')->group(function () {
-        //     Route::resource('/users', AdminUserController::class);
-        //     // Rute Kelas (CRUD saja)
-        //     Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
-        //     Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
-        //     Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
-        //     // Rute Pengaturan
-        //     Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
-        //     Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
-        // });
-        // Rute index kelas tetap di luar grup Super Admin agar Piket bisa lihat
-        // Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index'); // Pastikan ini ada di dalam grup 'role:Super Admin,Petugas Piket'
     
 require __DIR__.'/auth.php'; // Rute otentikasi Breeze
