@@ -129,15 +129,17 @@ use App\Http\Controllers\Admin\SettingController as AdminSettingController; // T
     // ... (rute dashboard, users, classes, settings) ...
 
     // --- Laporan Presensi (Admin & Petugas Piket) ---
-    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+    // Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
  // Rute untuk export PDF
-    Route::get('/reports/export/pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    // Route::get('/reports/export/pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('reports/export', [AdminReportController::class, 'export'])->name('admin.reports.export');
+    Route::get('reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('admin.reports.exportPdf');
+    
     use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // Tambahkan use jika belum
 
     // Di dalam Route::prefix('admin')->name('admin.')->middleware(['role:Super Admin,Petugas Piket'])->group(...)
-    
         // ... (rute dashboard, reports, settings) ...
-    
         // --- Manajemen Presensi Manual (Admin & Piket bisa index, CRUD hanya Super Admin via Controller) ---
         Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
         // Route::get('/attendances', [AdminAttendanceController::class,'index'])->name('index');

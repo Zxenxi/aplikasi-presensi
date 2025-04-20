@@ -10,7 +10,7 @@
 
         {{-- Form Filter --}}
         <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-6">
-            <form method="GET" action="{{ route('reports.index') }}"
+            <form method="GET" action="{{ route('admin.reports.index') }}"
                 class="space-y-4 md:space-y-0 md:grid md:grid-cols-12 md:gap-4 md:items-end">
                 {{-- Tanggal Mulai --}}
                 <div class="col-span-6 sm:col-span-3">
@@ -78,7 +78,7 @@
                 </div>
                 {{-- Tombol Reset (opsional) --}}
                 <div class="col-span-12 sm:col-span-2 md:col-span-1 ">
-                    <a href="{{ route('reports.index') }}"
+                    <a href="{{ route('admin.reports.index') }}"
                         class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Reset
                     </a>
@@ -100,21 +100,12 @@
                         class="inline-flex items-center px-3 py-1.5 border border-green-600 text-xs font-medium rounded shadow-sm text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i> Export Excel
                     </a>
-                    {{-- Tombol Export PDF akan ditambahkan di sini --}}
+                    <a href="{{ route('admin.reports.exportPdf', $filters) }}" {{-- Kirim filter aktif --}} target="_blank"
+                        {{-- Buka di tab baru (opsional) --}}
+                        class="inline-flex items-center px-3 py-1.5 border border-red-600 text-xs font-medium rounded shadow-sm text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i> Export PDF
+                    </a>
                 </div>
-            </div>
-            {{-- Di dalam @isset($results) dan di dalam div grup tombol export --}}
-            <div class="flex space-x-2">
-                {{-- Tombol Export Excel --}}
-                <a href="{{ route('reports.export', $filters) }}" class="...">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i> Export Excel
-                </a>
-                {{-- Tombol Export PDF --}}
-                <a href="{{ route('reports.export.pdf', $filters) }}" {{-- Kirim filter aktif --}} target="_blank"
-                    {{-- Buka di tab baru (opsional) --}}
-                    class="inline-flex items-center px-3 py-1.5 border border-red-600 text-xs font-medium rounded shadow-sm text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                    <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i> Export PDF
-                </a>
             </div>
             <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                 <div class="p-4 border-b">

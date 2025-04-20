@@ -25,7 +25,7 @@
                         <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
                             class="text-xs font-medium">Presensi</span>
                     </a>
-                    <a href="{{ route('reports.index') }}" title="Laporan"
+                    <a href="{{ route('admin.reports.index') }}" title="Laporan"
                         class="bottom-nav-item flex flex-col items-center justify-center w-1/5 pt-1 {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
                         <i data-lucide="bar-chart-3" class="h-5 w-5 mb-1"></i><span
                             class="text-xs font-medium">Laporan</span>

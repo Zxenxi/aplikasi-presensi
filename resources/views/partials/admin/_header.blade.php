@@ -31,7 +31,7 @@
                             <i data-lucide="building" class="w-5 h-5"></i>
                             <span>Kelas</span>
                         </a>
-                        <a href="{{ route('reports.index') }}"
+                        <a href="{{ route('admin.reports.index') }}"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                             <span>Laporan</span>
@@ -140,8 +140,8 @@
                         <i data-lucide="building" class="w-5 h-5"></i>
                         <span>Kelas</span>
                     </a>
-                    <a href="{{ route('reports.index') }}"
-                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ route('admin.reports.index') }}"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                         <span>Laporan</span>
                     </a>
