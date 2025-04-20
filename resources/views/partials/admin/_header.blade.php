@@ -10,9 +10,9 @@
                 <span class="ml-2 text-xl font-bold text-gray-800 hidden sm:inline">Penabur Presensi</span>
                 <span class="ml-2 text-lg font-bold text-gray-800 sm:hidden">Presensi</span>
             </div>
+            {{-- dekstop View --}}
             <div class="hidden md:flex md:absolute md:inset-y-0 md:left-1/2 md:transform md:-translate-x-1/2">
                 @auth
-
                     @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                         <a href="{{ route('admin.dashboard') }}"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -116,11 +116,12 @@
                 </button>
             </div>
         </div>
+        {{-- end dekstop view  --}}
     </div>
+    {{-- mobile view  --}}
     <div x-show="isMobileMenuOpen" x-cloak class="sm:hidden border-t border-gray-200" id="mobile-menu" x-transition>
         <div class="px-2 pt-2 pb-3 space-y-1">
             @auth
-
                 @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                     <a href="{{ route('admin.dashboard') }}"
                         class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -145,46 +146,49 @@
                         <span>Laporan</span>
                     </a>
                     <a href="{{ route('attendances.index') }}" title="Presensi Manual"
-                        class="bottom-nav-item flex flex-col items-center justify-center w-1/5 pt-1 {{ request()->routeIs('attendances*') ? 'active' : '' }}">
-                        <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
-                            class="text-xs font-medium">Presensi</span>
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendances.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="calendar-check" class="h-5 w-5"></i>
+                        <span>Presensi</span>
                     </a>
                     {{-- Link Pengaturan hanya untuk Super Admin --}}
                     @if (Auth::user()->isSuperAdmin())
                         <a href="{{ route('settings.edit') }}" title="Pengaturan Aplikasi"
-                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
-                            <i data-lucide="settings" class="w-4 h-4"></i><span>Pengaturan</span>
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.settings*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                            <span>Pengaturan</span>
                         </a>
                     @endif
                 @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
                     {{-- === Menu untuk Guru & Siswa === --}}
                     <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.create') ? 'active' : '' }}">
-                        <i data-lucide="camera" class="w-4 h-4"></i><span>Presensi</span>
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.create*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="camera" class="w-5 h-5"></i><span>Presensi</span>
                     </a>
                     <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('attendance.history') ? 'active' : '' }}">
-                        <i data-lucide="history" class="w-4 h-4"></i><span>Riwayat</span>
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.history*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
                     </a>
                 @endif
+
             @endauth
             <div class="border-t border-gray-100 pt-3 mt-2">
                 <a href="#"
                     class="flex items-center space-x-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"><i
                         data-lucide="user-circle" class="w-5 h-5"></i><span>Profil Anda</span></a>
                 {{-- Contoh di dalam dropdown user menu --}}
-                <form method="POST" action="{{ route('logout') }}" x-show="isUserMenuOpen">
+                {{-- Tombol logout mobile --}}
+                <form method="POST" action="{{ route('logout') }}" class="pt-2 border-t border-gray-200">
                     @csrf
                     <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();"
-                        class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100" role="menuitem"
-                        tabindex="-1">
-                        <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>Keluar
+                        class="flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-100">
+                        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i>Keluar
                     </a>
                 </form>
-                {{-- <a href="#"
-                    class="flex items-center space-x-2 text-red-600 hover:bg-gray-50 hover:text-red-700 block px-3 py-2 rounded-md text-base font-medium"><i
-                        data-lucide="log-out" class="w-5 h-5"></i><span>Keluar</span></a> --}}
+
             </div>
         </div>
     </div>
 </header>
+{{-- <a href="#"
+    class="flex items-center space-x-2 text-red-600 hover:bg-gray-50 hover:text-red-700 block px-3 py-2 rounded-md text-base font-medium"><i
+        data-lucide="log-out" class="w-5 h-5"></i><span>Keluar</span></a> --}}
