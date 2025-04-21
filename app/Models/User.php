@@ -41,8 +41,22 @@ class User extends Authenticatable
     }
 
     // Helper Methods (Opsional)
-    public function isSuperAdmin(): bool { return $this->role === 'Super Admin'; }
-    public function isPetugasPiket(): bool { return $this->role === 'Petugas Piket'; }
+    public function isSuperAdmin()
+    {
+        return $this->role === 'Super Admin';
+    }
+
+    /**
+     * Check if the user has the "Petugas Piket" role.
+     *
+     * @return bool
+     */
+    public function isPetugasPiket()
+    {
+        return $this->role === 'Petugas Piket';
+    }
+    // public function isSuperAdmin(): bool { return $this->role === 'Super Admin'; }
+    // public function isPetugasPiket(): bool { return $this->role === 'Petugas Piket'; }
     public function isGuru(): bool { return $this->role === 'Guru'; }
     public function isSiswa(): bool { return $this->role === 'Siswa'; }
     

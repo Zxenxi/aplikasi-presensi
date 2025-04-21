@@ -15,29 +15,29 @@
                 @auth
                     @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                         <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                             <span>Dashboard</span>
                         </a>
 
                         <a href="{{ route('admin.users.index') }}"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="users" class="w-5 h-5"></i>
                             <span class="font-medium">Pengguna</span>
                         </a>
 
                         <a href="{{ route('admin.classes.index') }}"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="building" class="w-5 h-5"></i>
                             <span class="font-medium">Kelas</span>
                         </a>
                         <a href="{{ route('admin.reports.index') }}"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                             <span class="font-medium">Laporan</span>
                         </a>
                         <a href="{{ route('admin.attendances.index') }}" title="Presensi Manual"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="calendar-check" class="h-5 w-5"></i>
                             <span class="font-medium">Presensi</span>
                         </a>

@@ -239,7 +239,7 @@
                         longitudeInputEl.value = position.coords.longitude;
                         isLocationReady = true;
                         console.log(
-                        `Lokasi ditemukan: ${latitudeInputEl.value}, ${longitudeInputEl.value}`);
+                            `Lokasi ditemukan: ${latitudeInputEl.value}, ${longitudeInputEl.value}`);
                         checkAndEnableButton();
                     },
                     (error) => {

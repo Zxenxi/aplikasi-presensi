@@ -3,17 +3,21 @@
 // --------------------------------------------------------------------------
 // Import Semua Controller di Awal
 // --------------------------------------------------------------------------
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
+use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AttendanceController; // Untuk presensi Siswa/Guru
+use App\Http\Controllers\AttendanceController;
 // Controller Admin
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // Untuk CRUD presensi oleh Admin
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
 
+// ... (sisa kode routes dimulai di sini) ...
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -30,20 +34,31 @@ use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController
 // --------------------------------------------------------------------------
 
 // Rute halaman utama ('/')
+// Rute halaman utama ('/')
 Route::get('/', function () {
-    // Jika user belum login, arahkan ke halaman login
-    if (!auth()->check()) {
+    // Gunakan Auth::check()
+    if (!Auth::check()) {
         return redirect()->route('login');
     }
-    // Jika sudah login, arahkan berdasarkan role
-    $user = auth()->user();
-    if ($user->isSuperAdmin() || $user->isPetugasPiket()) {
-        return redirect()->route('admin.dashboard'); // Ke dashboard admin
+
+    /** @var \App\Models\User|null $user */ // <-- Tambahkan hint di sini (tambahkan |null karena user bisa null jika check gagal, meskipun kita sudah cek)
+    $user = Auth::user(); // <-- Pastikan menggunakan Auth::user() atau auth()->user()
+
+    // Cek null untuk user (pengamanan tambahan)
+    if (!$user) {
+        // Jika user null meskipun Auth::check() true (jarang terjadi), redirect ke login
+        Auth::logout(); // Logout paksa jika state aneh
+        return redirect()->route('login');
     }
-    if ($user->isGuru() || $user->isSiswa()) {
-        return redirect()->route('attendance.history'); // Ke riwayat presensi
+
+    // Panggil method role pada $user
+    if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini sekarang
+        return redirect()->route('admin.dashboard');
     }
-    // Fallback ke dashboard default jika role tidak cocok
+    if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini sekarang
+        return redirect()->route('attendance.history');
+    }
+    // Fallback
     return redirect()->route('dashboard');
 })->name('home');
 
@@ -53,16 +68,29 @@ Route::get('/', function () {
 // --------------------------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
 
-    // --- Dashboard Bawaan Laravel (Fallback) ---
-    // Diakses jika user login tapi role tidak cocok dengan admin/guru/siswa
-    // atau sebagai tujuan redirect sementara
+    // Dashboard Default Bawaan Laravel (Fallback)
     Route::get('/dashboard', function () {
-        $user = auth()->user();
-        if ($user->isSuperAdmin() || $user->isPetugasPiket()) { return redirect()->route('admin.dashboard'); }
-        if ($user->isGuru() || $user->isSiswa()) { return redirect()->route('attendance.history'); }
-        // Jika tidak cocok, tampilkan view dashboard default dari Breeze/Jetstream
+        /** @var \App\Models\User|null $user */ // <-- Tambahkan hint di sini
+        $user = Auth::user(); // <-- Pastikan menggunakan Auth::user() atau auth()->user()
+
+        // Cek null untuk user
+        if (!$user) {
+            Auth::logout();
+            return redirect()->route('login');
+        }
+
+        // Panggil method role pada $user
+        if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini
+             return redirect()->route('admin.dashboard');
+        }
+        if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini
+             return redirect()->route('attendance.history');
+        }
+        // Tampilkan view dashboard default jika tidak cocok role di atas
         return view('dashboard');
     })->name('dashboard');
+
+    // ... (sisa route di dalam grup auth) ...
 
     // --- Rute Profil Pengguna ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
