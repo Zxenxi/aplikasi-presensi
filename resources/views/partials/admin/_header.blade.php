@@ -23,23 +23,23 @@
                         <a href="{{ route('admin.users.index') }}"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="users" class="w-5 h-5"></i>
-                            <span>Pengguna</span>
+                            <span class="font-medium">Pengguna</span>
                         </a>
 
                         <a href="{{ route('admin.classes.index') }}"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="building" class="w-5 h-5"></i>
-                            <span>Kelas</span>
+                            <span class="font-medium">Kelas</span>
                         </a>
                         <a href="{{ route('admin.reports.index') }}"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                            <span>Laporan</span>
+                            <span class="font-medium">Laporan</span>
                         </a>
                         <a href="{{ route('attendances.index') }}" title="Presensi Manual"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
-                                class="text-xs font-medium">Presensi</span>
+                                class="font-medium">Presensi</span>
                         </a>
                         {{-- Link Pengaturan hanya untuk Super Admin --}}
                     @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
