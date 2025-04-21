@@ -10,17 +10,10 @@ use Illuminate\Support\Facades\Storage; // Untuk simpan file
 use Carbon\Carbon; // Untuk manipulasi waktu
 
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
-    // Konstruktor untuk menerapkan middleware ke semua method di controller ini
-    // public function __construct()
-    // {
-    //     // Hanya user terotentikasi dengan role Guru atau Siswa yang bisa akses
-    //     $this->middleware('auth');
-    //     $this->middleware('role:Guru,Siswa'); // Gunakan middleware role kita
-    // }
-
     /**
      * Menampilkan halaman form untuk melakukan presensi.
      */
@@ -38,18 +31,6 @@ class AttendanceController extends Controller
         if ($alreadyAttended) {
             return redirect()->route('attendance.history')->with('warning', 'Anda sudah melakukan presensi hari ini.');
         }
-
-        // Cek apakah waktu presensi masih dibuka
-        // $now = Carbon::now();
-        // $startTime = Carbon::parse($settings->attendance_start_time);
-        // $endTime = Carbon::parse($settings->attendance_end_time);
-
-        // // Beri sedikit buffer waktu sebelum mulai dan setelah selesai (misal 5 menit)
-        // if (!$now->between($startTime->copy()->subMinutes(5), $endTime->copy()->addMinutes(5))) {
-        //      return redirect()->route('attendance.create') // Redirect ke dashboard biasa
-        //                      ->with('error', 'Presensi belum dibuka atau sudah ditutup untuk saat ini.');
-        // }
-
 
         return view('attendance.create');
     }
@@ -152,7 +133,7 @@ class AttendanceController extends Controller
                 Storage::disk('public')->delete($selfie_path);
             }
              // Tampilkan pesan error umum
-             \Log::error("Error saving attendance: ". $e->getMessage()); // Log error untuk debug
+             Log::error("Error saving attendance: ". $e->getMessage()); // Log error untuk debug
             return back()->with('error', 'Terjadi kesalahan saat menyimpan data presensi.');
         }
     }
@@ -163,8 +144,16 @@ class AttendanceController extends Controller
      */
     public function index()
     {
+        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
         $user = Auth::user();
-        $attendances = $user->attendances() // Ambil dari relasi
+
+        // Otorisasi manual
+        if (!$user->isGuru() && !$user->isSiswa()) { // IDE sekarang mengenali isGuru/isSiswa
+             abort(403, 'Hanya Guru dan Siswa yang dapat melihat riwayat presensi.');
+        }
+
+        // IDE sekarang mengenali method attendances() pada $user
+        $attendances = $user->attendances()
                             ->orderBy('tanggal', 'desc') // Urutkan terbaru dulu
                             ->paginate(20); // Paginasi
 

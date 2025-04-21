@@ -30,7 +30,7 @@
 
 
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <form method="POST" action="{{ route('settings.update') }}" class="space-y-6">
+                <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-6">
                     @csrf
                     @method('PUT') {{-- Gunakan method PUT untuk update --}}
 

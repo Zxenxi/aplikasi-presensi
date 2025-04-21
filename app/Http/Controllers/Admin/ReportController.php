@@ -21,9 +21,13 @@ class ReportController extends Controller
     public function index(Request $request) // Terima Request untuk ambil filter
     {
         // Otorisasi: Super Admin & Petugas Piket bisa akses
-        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isPetugasPiket()) {
-            abort(403, 'Akses Ditolak');
-        }
+          /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+          $user = Auth::user();
+
+          // Otorisasi: Super Admin & Petugas Piket bisa akses
+          if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+              abort(403, 'Akses Ditolak');
+          }
 
         // Ambil data untuk filter dropdown
         $kelas = Kelas::orderBy('nama_kelas')->get();
@@ -88,11 +92,13 @@ class ReportController extends Controller
 // Method export di dalam class ReportController
 public function export(Request $request)
 {
-    // Otorisasi
-    if (!Auth::user()->isSuperAdmin() && !Auth::user()->isPetugasPiket()) {
-        abort(403, 'Akses Ditolak');
-    }
+      /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+      $user = Auth::user();
 
+      // Otorisasi
+      if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+          abort(403, 'Akses Ditolak');
+      }
      // Validasi filter (minimal tanggal harus ada)
     $validatedFilters = $request->validate([ // Simpan hasil validasi
         'tanggal_mulai' => 'required|date',
@@ -113,11 +119,13 @@ public function export(Request $request)
 // Tambahkan method ini di dalam class ReportController
 public function exportPdf(Request $request)
 {
-    // Otorisasi
-    if (!Auth::user()->isSuperAdmin() && !Auth::user()->isPetugasPiket()) {
-        abort(403, 'Akses Ditolak');
-    }
+       /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+       $user = Auth::user();
 
+       // Otorisasi
+       if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+           abort(403, 'Akses Ditolak');
+       }
     // Validasi filter (minimal tanggal harus ada)
     $validatedFilters = $request->validate([
         'tanggal_mulai' => 'required|date',

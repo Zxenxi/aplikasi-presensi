@@ -100,7 +100,7 @@
                         class="inline-flex items-center px-3 py-1.5 border border-green-600 text-xs font-medium rounded shadow-sm text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i> Export Excel
                     </a>
-                    <a href="{{ route('admin.reports.exportPdf', $filters) }}" {{-- Kirim filter aktif --}} target="_blank"
+                    <a href="{{ route('admin.reports.export.pdf', $filters) }}" {{-- Kirim filter aktif --}} target="_blank"
                         {{-- Buka di tab baru (opsional) --}}
                         class="inline-flex items-center px-3 py-1.5 border border-red-600 text-xs font-medium rounded shadow-sm text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i> Export PDF
@@ -148,7 +148,31 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($results as $index => $att)
                                 <tr>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm">
+                                        @php
+                                            // Definisikan $statusBadge di sini SEBELUM digunakan
+                                            $status = $att->status;
+                                            $statusBadge = ''; // Inisialisasi
+
+                                            if ($status === 'Hadir') {
+                                                $statusBadge = 'badge-green';
+                                            } elseif ($status === 'Telat') {
+                                                $statusBadge = 'badge-yellow';
+                                            } elseif ($status === 'Izin') {
+                                                $statusBadge = 'badge-blue';
+                                            } elseif ($status === 'Sakit') {
+                                                $statusBadge = 'badge-purple';
+                                            } else {
+                                                $statusBadge = 'badge-red';
+                                            } // Default
+                                        @endphp
+                                        {{-- Baru gunakan variabel $statusBadge di sini --}}
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">
+                                            {{ $att->status }}
+                                        </span>
+                                    </td>
+                                    {{-- <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                         {{ $att->tanggal->isoFormat('D MMM YYYY') }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
@@ -166,7 +190,7 @@
                                         <span
                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">
                                             {{ $att->status }} </span>
-                                    </td>
+                                    </td> --}}
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
                                         @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
                                             <img src="{{ Storage::url($att->selfie_path) }}" alt="Selfie"

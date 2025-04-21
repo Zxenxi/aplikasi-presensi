@@ -15,8 +15,11 @@ class SettingController extends Controller
      */
     public function edit()
     {
+        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+        $user = Auth::user();
+
         // Otorisasi: Hanya Super Admin yang boleh akses
-        if (!Auth::user()->isSuperAdmin()) {
+        if (!$user->isSuperAdmin()) { // Sekarang IDE mengenali method ini
             abort(403, 'ANDA TIDAK MEMILIKI AKSES.');
         }
 
@@ -43,10 +46,13 @@ class SettingController extends Controller
      */
     public function update(Request $request)
     {
-         // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'ANDA TIDAK MEMILIKI AKSES.');
-        }
+            /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+            $user = Auth::user();
+
+            // Otorisasi: Hanya Super Admin
+           if (!$user->isSuperAdmin()) { // Sekarang IDE mengenali method ini
+               abort(403, 'ANDA TIDAK MEMILIKI AKSES.');
+           }
 
         // Validasi input dari form
         $validated = $request->validate([
@@ -78,7 +84,7 @@ class SettingController extends Controller
         $settings->update($validated);
 
         // Redirect kembali ke halaman edit dengan pesan sukses
-        return redirect()->route('settings.edit')
+        return redirect()->route('admin.settings.edit')
                          ->with('success', 'Pengaturan aplikasi berhasil diperbarui.');
     }
 }

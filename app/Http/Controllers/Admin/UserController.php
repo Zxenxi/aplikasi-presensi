@@ -17,10 +17,13 @@ class UserController extends Controller
      */
     public function index()
     {
-        // Otorisasi: Hanya Super Admin & Petugas Piket yang bisa lihat
-        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isPetugasPiket()) {
-            abort(403, 'Akses Ditolak');
-        }
+             /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+             $user = Auth::user();
+
+             // Otorisasi
+             if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+                  abort(403, 'Akses Ditolak');
+              }
 
         $users = User::with('kelas') // Eager load relasi kelas
                      ->orderBy('name')
@@ -34,9 +37,11 @@ class UserController extends Controller
      */
     public function create()
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+            /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+            $user = Auth::user();
 
+            // Otorisasi
+            if (!$user->isSuperAdmin()) abort(403, 'Akses Ditolak');
         $kelas = Kelas::orderBy('nama_kelas')->get(); // Ambil semua kelas untuk dropdown
         return view('admin.users.create', compact('kelas'));
     }
@@ -46,9 +51,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+         /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+         $user = Auth::user();
 
+         // Otorisasi
+         if (!$user->isSuperAdmin()) abort(403, 'Akses Ditolak');
+ 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'], // Pastikan email unik
@@ -91,9 +99,12 @@ class UserController extends Controller
      */
     public function edit(User $user) // Route Model Binding: Laravel otomatis cari User berdasarkan ID di URL
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+               /** @var \App\Models\User $currentUser */ // <-- PHPDoc Hint
+               $currentUser = Auth::user();
 
+               // Otorisasi
+               if (!$currentUser->isSuperAdmin()) abort(403, 'Akses Ditolak');
+       
         $kelas = Kelas::orderBy('nama_kelas')->get(); // Ambil kelas untuk dropdown
         return view('admin.users.edit', compact('user', 'kelas'));
     }
@@ -103,9 +114,12 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+          /** @var \App\Models\User $currentUser */ // <-- PHPDoc Hint
+          $currentUser = Auth::user();
 
+          // Otorisasi
+          if (!$currentUser->isSuperAdmin()) abort(403, 'Akses Ditolak');
+  
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id], // Abaikan email user ini saat cek unik
@@ -141,9 +155,12 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+          /** @var \App\Models\User $currentUser */ // <-- PHPDoc Hint
+          $currentUser = Auth::user();
 
+          // Otorisasi
+          if (!$currentUser->isSuperAdmin()) abort(403, 'Akses Ditolak');
+  
         // Pencegahan: jangan sampai menghapus akun sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');

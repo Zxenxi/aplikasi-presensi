@@ -5,7 +5,7 @@
         <div class="max-w-xl mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold text-gray-800">Tambah Data Presensi Manual</h1>
-                <a href="{{ route('attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
+                <a href="{{ route('admin.attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
                     Daftar</a>
             </div>
 
@@ -14,7 +14,7 @@
 
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                 {{-- Alpine data untuk kontrol jam masuk --}}
-                <form method="POST" action="{{ route('attendances.store') }}" class="space-y-6" x-data="{ selectedStatus: '{{ old('status', 'Izin') }}' }">
+                <form method="POST" action="{{ route('admin.attendances.store') }}" class="space-y-6" x-data="{ selectedStatus: '{{ old('status', 'Izin') }}' }">
                     @csrf
 
                     {{-- Pilih User --}}
@@ -87,21 +87,10 @@
 
                     {{-- Tombol Aksi --}}
                     <div class="flex justify-end space-x-3 pt-4 border-t">
-                        <a href="{{ route('attendances.index') }}" class="btn-secondary">Batal</a>
-                        {{-- Tombol Simpan dengan state loading --}}
-                        {{-- <button type="submit" x-data="{ submitting: false }" x-on:click="submitting = true" :disabled="submitting"
-                            class="btn-primary">
-                            <svg x-show="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                            <span x-text="submitting ? 'Menyimpan...' : 'Simpan Data'"></span>
-                        </button> --}}
-                        <button type="submit" class="btn-primary ...">
+                        <a href="{{ route('admin.attendances.index') }}" class="btn-secondary">Batal</a>
+                        <button type="submit" {{-- class="  --}}
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                           btn-primary ...">
                             Simpan Pengguna
                         </button>
                     </div>

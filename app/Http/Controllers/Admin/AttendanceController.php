@@ -51,11 +51,16 @@ class AttendanceController extends Controller
      */
     public function create()
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin untuk menambah data presensi.');
+        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+        $user = Auth::user();
+
+        // Sekarang IDE tahu $user adalah App\Models\User
+        // dan tidak akan menampilkan error untuk isSuperAdmin()
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Anda tidak memiliki izin...');
         }
 
+        // ... sisa kode method create ...
         $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
         return view('admin.attendances.create', compact('users'));
     }
@@ -66,9 +71,11 @@ class AttendanceController extends Controller
      */
     public function store(Request $request)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin untuk menyimpan data presensi.');
+        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Anda tidak memiliki izin...');
         }
 
         $validated = $request->validate([
@@ -112,7 +119,7 @@ class AttendanceController extends Controller
 
         Attendance::create($validated);
 
-        return redirect()->route('attendances.index')->with('success', 'Data presensi manual berhasil ditambahkan.');
+        return redirect()->route('admin.attendances.index')->with('success', 'Data presensi manual berhasil ditambahkan.');
     }
 
     /**
@@ -130,8 +137,12 @@ class AttendanceController extends Controller
     public function edit(Attendance $attendance)
     {
         // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin untuk mengedit data presensi.');
+        
+        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Anda tidak memiliki izin...');
         }
 
          $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
@@ -146,9 +157,12 @@ class AttendanceController extends Controller
     public function update(Request $request, Attendance $attendance)
     {
         // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin untuk memperbarui data presensi.');
-        }
+       /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+       $user = Auth::user();
+
+       if (!$user->isSuperAdmin()) {
+          abort(403, 'Anda tidak memiliki izin...');
+      }
 
         $validated = $request->validate([
             // User ID tidak diubah saat edit, jadi tidak perlu divalidasi ulang di sini
@@ -201,14 +215,12 @@ class AttendanceController extends Controller
     public function destroy(Attendance $attendance)
     {
          // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin untuk menghapus data presensi.');
-        }
+      /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
+      $user = Auth::user();
 
-        // Hapus file selfie jika ada
-         if ($attendance->selfie_path && Storage::disk('public')->exists($attendance->selfie_path)) {
-             Storage::disk('public')->delete($attendance->selfie_path);
-         }
+      if (!$user->isSuperAdmin()) {
+         abort(403, 'Anda tidak memiliki izin...');
+     }
 
         $attendance->delete();
 

@@ -36,8 +36,8 @@
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                             <span class="font-medium">Laporan</span>
                         </a>
-                        <a href="{{ route('attendances.index') }}" title="Presensi Manual"
-                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <a href="{{ route('admin.attendances.index') }}" title="Presensi Manual"
+                            class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.attendances*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="calendar-check" class="h-5 w-5"></i>
                             <span class="font-medium">Presensi</span>
                         </a>
@@ -84,7 +84,7 @@
                                     class="w-4 h-4 mr-2"></i>Profil Anda</a>
                             {{-- Contoh di _topnav.blade.php atau dropdown user --}}
                             @if (auth()->user()->isSuperAdmin())
-                                <a href="{{ route('settings.edit') }}"
+                                <a href="{{ route('admin.settings.edit') }}"
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     {{ request()->routeIs('admin.settings.edit') ? 'active' : '' }}">
                                     <i data-lucide="settings" class="w-4 h-4 mr-2"></i><span>Pengaturan</span>
@@ -145,14 +145,14 @@
                         <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                         <span>Laporan</span>
                     </a>
-                    <a href="{{ route('attendances.index') }}" title="Presensi Manual"
-                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendances.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ route('admin.attendances.index') }}" title="Presensi Manual"
+                        class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.attendances.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="calendar-check" class="h-5 w-5"></i>
                         <span>Presensi</span>
                     </a>
                     {{-- Link Pengaturan hanya untuk Super Admin --}}
                     @if (Auth::user()->isSuperAdmin())
-                        <a href="{{ route('settings.edit') }}" title="Pengaturan Aplikasi"
+                        <a href="{{ route('admin.settings.edit') }}" title="Pengaturan Aplikasi"
                             class="flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.settings*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="settings" class="w-5 h-5"></i>
                             <span>Pengaturan</span>

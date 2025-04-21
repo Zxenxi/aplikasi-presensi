@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\User; // Untuk ambil data guru
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth; // Import Auth
 
 class KelasController extends Controller
 {
@@ -15,15 +15,18 @@ class KelasController extends Controller
      */
     public function index()
     {
-        // Otorisasi: Super Admin & Petugas Piket bisa lihat
-        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isPetugasPiket()) abort(403, 'Akses Ditolak');
+        /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+        $user = Auth::user();
 
-        $kelas = Kelas::with(['waliKelas', 'students']) // Eager load relasi waliKelas dan students (untuk count)
+        // Otorisasi: Super Admin & Petugas Piket bisa lihat
+        if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+             abort(403, 'Akses Ditolak');
+        }
+
+        $kelas = Kelas::with(['waliKelas', 'students'])
                       ->orderBy('tingkat')
                       ->orderBy('nama_kelas')
                       ->get();
-
-        // Ambil data guru untuk dropdown wali kelas di modal
         $guru = User::where('role', 'Guru')->orderBy('name')->get();
 
         return view('admin.classes.index', compact('kelas', 'guru'));
@@ -34,66 +37,71 @@ class KelasController extends Controller
      */
     public function store(Request $request)
     {
-         // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+        /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+        $user = Auth::user();
+
+        // Otorisasi: Hanya Super Admin
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak');
+        }
 
         $validated = $request->validate([
             'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas',
-            'tingkat' => 'required|integer|min:1|max:12', // Sesuaikan max jika perlu
+            'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
-            'wali_kelas_id' => 'nullable|exists:users,id', // Pastikan ID user ada
+            'wali_kelas_id' => 'nullable|exists:users,id',
         ]);
 
-        // Validasi tambahan: pastikan wali_kelas_id adalah seorang Guru
         if (!empty($validated['wali_kelas_id'])) {
             $wali = User::find($validated['wali_kelas_id']);
-            if (!$wali || !$wali->isGuru()) {
-                 // Kembalikan dengan error spesifik
+            /** @var \App\Models\User|null $wali */ // Hint tambahan untuk $wali
+            if (!$wali || !$wali->isGuru()) { // Panggil isGuru() pada objek User $wali
                  return back()
                         ->withErrors(['wali_kelas_id' => 'Wali kelas yang dipilih harus memiliki role Guru.'])
-                        ->withInput(); // Kembalikan input sebelumnya
+                        ->withInput();
             }
         } else {
-            $validated['wali_kelas_id'] = null; // Set null jika kosong
+            $validated['wali_kelas_id'] = null;
         }
 
-
         Kelas::create($validated);
-
-        return back()->with('success', 'Kelas berhasil ditambahkan.'); // Kembali ke halaman index kelas
+        return back()->with('success', 'Kelas berhasil ditambahkan.');
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Kelas $kela) // Nama parameter $kela sesuai route
+    public function update(Request $request, Kelas $kela)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+        /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+        $user = Auth::user();
 
-         $validated = $request->validate([
-            'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas,' . $kela->id, // Abaikan ID kelas ini saat cek unik
+        // Otorisasi: Hanya Super Admin
+        if (!$user->isSuperAdmin()) {
+             abort(403, 'Akses Ditolak');
+        }
+
+        $validated = $request->validate([
+            'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas,' . $kela->id,
             'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
             'wali_kelas_id' => 'nullable|exists:users,id',
         ]);
 
-         // Validasi tambahan: pastikan wali_kelas_id adalah seorang Guru
         if (!empty($validated['wali_kelas_id'])) {
             $wali = User::find($validated['wali_kelas_id']);
-            if (!$wali || !$wali->isGuru()) {
+             /** @var \App\Models\User|null $wali */ // Hint tambahan untuk $wali
+            if (!$wali || !$wali->isGuru()) { // Panggil isGuru() pada objek User $wali
                  return back()
                         ->withErrors(['wali_kelas_id' => 'Wali kelas yang dipilih harus memiliki role Guru.'])
                         ->withInput();
             }
         } else {
-            $validated['wali_kelas_id'] = null; // Set null jika kosong
+            $validated['wali_kelas_id'] = null;
         }
 
-
         $kela->update($validated);
-
         return back()->with('success', 'Data kelas berhasil diperbarui.');
     }
 
@@ -102,20 +110,19 @@ class KelasController extends Controller
      */
     public function destroy(Kelas $kela)
     {
-        // Otorisasi: Hanya Super Admin
-        if (!Auth::user()->isSuperAdmin()) abort(403, 'Akses Ditolak');
+        /** @var \App\Models\User $user */ // <-- PHPDoc Hint
+        $user = Auth::user();
 
-        // PENTING: Cek relasi ke siswa sebelum menghapus
-        if ($kela->students()->count() > 0) {
-            return back()->with('error', 'Gagal menghapus: Kelas ini masih memiliki siswa terdaftar. Pindahkan atau hapus siswa terlebih dahulu.');
+        // Otorisasi: Hanya Super Admin
+        if (!$user->isSuperAdmin()) {
+             abort(403, 'Akses Ditolak');
         }
 
-        // Opsional: Hapus relasi wali kelas jika diperlukan (biasanya tidak perlu jika onDelete null/cascade tidak diset)
-        // $kela->wali_kelas_id = null;
-        // $kela->save();
+        if ($kela->students()->count() > 0) {
+            return back()->with('error', 'Gagal menghapus: Kelas ini masih memiliki siswa terdaftar.');
+        }
 
         $kela->delete();
-
         return back()->with('success', 'Kelas berhasil dihapus.');
     }
 }

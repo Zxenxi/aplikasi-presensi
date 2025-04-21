@@ -10,13 +10,12 @@
             </div>
             {{-- Tombol Tambah HANYA untuk Super Admin --}}
             @if (Auth::user()->isSuperAdmin())
-                <a href="{{ route('attendances.create') }}"
+                <a href="{{ route('admin.attendances.create') }}"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <i data-lucide="plus" class="w-4 h-4 mr-1.5 -ml-1"></i> Tambah Data Presensi
                 </a>
             @endif
         </div>
-
         {{-- Include Partial Alert (buat file ini jika belum) --}}
         {{-- resources/views/partials/common/_alert.blade.php --}}
         @if (View::exists('partials.common._alert'))
@@ -36,7 +35,7 @@
 
         {{-- Filter Sederhana --}}
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6">
-            <form method="GET" action="{{ route('attendances.index') }}"
+            <form method="GET" action="{{ route('admin.attendances.index') }}"
                 class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div>
                     <label for="search_name" class="form-label">Cari Nama</label>
@@ -68,7 +67,7 @@
                     <button type="submit" class="btn-primary px-4 py-2">
                         <i data-lucide="search" class="w-4 h-4 mr-1"></i> Cari
                     </button>
-                    <a href="{{ route('attendances.index') }}" class="btn-secondary px-4 py-2">
+                    <a href="{{ route('admin.attendances.index') }}" class="btn-secondary px-4 py-2">
                         Reset
                     </a>
                 </div>
@@ -152,12 +151,12 @@
                                         {{-- Tombol Edit & Hapus HANYA untuk Super Admin --}}
                                         @if (Auth::user()->isSuperAdmin())
                                             {{-- Tombol Edit --}}
-                                            <a href="{{ route('attendances.edit', $att) }}" title="Edit Presensi"
+                                            <a href="{{ route('admin.attendances.edit', $att) }}" title="Edit Presensi"
                                                 class="action-button">
                                                 <i data-lucide="edit-2"></i>
                                             </a>
                                             {{-- Tombol Hapus --}}
-                                            <form action="{{ route('attendances.destroy', $att) }}" method="POST"
+                                            <form action="{{ route('admin.attendances.destroy', $att) }}" method="POST"
                                                 onsubmit="return confirm('Yakin ingin menghapus data presensi ini? Foto selfie terkait juga akan dihapus.');"
                                                 class="inline">
                                                 @csrf
