@@ -69,29 +69,35 @@
                             id="user-menu-button" :aria-expanded="isUserMenuOpen.toString()" aria-haspopup="true">
                             <span class="sr-only">Buka menu user</span>
                             <img class="h-8 w-8 rounded-full object-cover ring-1 ring-gray-300"
-                                src="https://placehold.co/100x100/6366F1/FFFFFF?text=A" alt="Admin Avatar"
+                                src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random&color=fff&size=128"
+                                {{-- Avatar dinamis berdasarkan nama --}} alt="Avatar Pengguna"
                                 onerror="this.onerror=null; this.src='https://placehold.co/100x100/cccccc/ffffff?text=Err';" />
-                            <span class="hidden md:block ml-2 text-sm font-medium text-gray-700">Admin User</span>
+                            {{-- Menampilkan nama user yang login --}}
+                            <span class="hidden md:block ml-2 text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                                {{ Auth::user()->name }}
+                            </span>
                             <i data-lucide="chevron-down" class="hidden md:block ml-1 h-4 w-4 text-gray-400"></i>
                         </button>
+                        {{-- Dropdown Menu --}}
                         <div x-show="isUserMenuOpen" x-cloak x-transition
                             class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button"
                             tabindex="-1">
-                            <a href="#"
+                            <a href="{{ route('profile.edit') }}" {{-- Link ke profil --}}
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem" tabindex="-1"><i data-lucide="user-circle"
                                     class="w-4 h-4 mr-2"></i>Profil Anda</a>
-                            {{-- Contoh di _topnav.blade.php atau dropdown user --}}
-                            @if (auth()->user()->isSuperAdmin())
+
+                            @if (Auth::user()->isSuperAdmin())
+                                {{-- Hanya Super Admin --}}
                                 <a href="{{ route('admin.settings.edit') }}"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    {{ request()->routeIs('admin.settings.edit') ? 'active' : '' }}">
+                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.settings.edit') ? 'active' : '' }}">
                                     <i data-lucide="settings" class="w-4 h-4 mr-2"></i><span>Pengaturan</span>
                                 </a>
                             @endif
 
-                            <form method="POST" action="{{ route('logout') }}" x-show="isUserMenuOpen">
+                            {{-- Form Logout --}}
+                            <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <a href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); this.closest('form').submit();"
@@ -100,7 +106,6 @@
                                     <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>Keluar
                                 </a>
                             </form>
-
                         </div>
                     </div>
                 </div>
