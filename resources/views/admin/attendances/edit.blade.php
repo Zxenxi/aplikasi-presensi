@@ -6,7 +6,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold text-gray-800">Edit Data Presensi: {{ $attendance->user->name ?? 'N/A' }}
                 </h1>
-                <a href="{{ route('attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
+                <a href="{{ route('admin.attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
                     Daftar</a>
             </div>
 
@@ -14,7 +14,7 @@
             {{-- @include('partials.common._alert') --}}
 
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <form method="POST" action="{{ route('attendances.update', $attendance) }}" class="space-y-6"
+                <form method="POST" action="{{ route('admin.attendances.update', $attendance) }}" class="space-y-6"
                     x-data="{ selectedStatus: '{{ old('status', $attendance->status) }}' }">
                     @csrf
                     @method('PUT')
@@ -105,7 +105,7 @@
 
                     {{-- Tombol Aksi --}}
                     <div class="flex justify-end space-x-3 pt-4 border-t">
-                        <a href="{{ route('attendances.index') }}" class="btn-secondary">Batal</a>
+                        <a href="{{ route('admin.attendances.index') }}" class="btn-secondary">Batal</a>
                         {{-- Tombol Simpan dengan state loading --}}
                         {{-- <button type="submit" x-data="{ submitting: false }" x-on:click="submitting = true" :disabled="submitting"
                             class="btn-primary">

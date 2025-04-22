@@ -205,7 +205,7 @@ class AttendanceController extends Controller
              // Biarkan field selfie, gps, dll tetap seperti semula
         ]);
 
-        return redirect()->route('attendances.index')->with('success', 'Data presensi berhasil diperbarui.');
+        return redirect()->route('admin.attendances.index')->with('success', 'Data presensi berhasil diperbarui.');
     }
 
     /**
