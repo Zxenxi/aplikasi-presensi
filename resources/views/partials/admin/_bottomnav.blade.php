@@ -21,7 +21,7 @@
                         <i data-lucide="building" class="h-5 w-5 mb-1"></i><span class="text-xs font-medium">Kelas</span>
                     </a>
                     <a href="{{ route('admin.attendances.index') }}" title="Presensi Manual"
-                        class="bottom-nav-item flex flex-col items-center justify-center w-1/5 pt-1 {{ request()->routeIs('attendances*') ? 'active' : '' }}">
+                        class="bottom-nav-item flex flex-col items-center justify-center w-1/5 pt-1 {{ request()->routeIs('admin.attendances*') ? 'active' : '' }}">
                         <i data-lucide="calendar-check" class="h-5 w-5 mb-1"></i><span
                             class="text-xs font-medium">Presensi</span>
                     </a>

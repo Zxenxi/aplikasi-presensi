@@ -57,12 +57,6 @@
             </div>
             <div class="hidden sm:flex sm:items-center sm:ml-6">
                 <div class="flex items-center space-x-3">
-                    <button type="button" title="Notifikasi"
-                        class="relative text-gray-400 hover:text-gray-600 focus:outline-none p-1.5 rounded-full hover:bg-gray-100">
-                        <span class="sr-only">Notifikasi</span><i data-lucide="bell" class="w-5 h-5"></i>
-                        <span
-                            class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white"></span>
-                    </button>
                     <div class="relative">
                         <button @click="isUserMenuOpen = !isUserMenuOpen" type="button"
                             class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
