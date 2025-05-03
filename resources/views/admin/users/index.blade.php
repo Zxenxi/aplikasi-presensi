@@ -90,7 +90,8 @@
                                 <td class="text-center">
                                     <div class="flex justify-center items-center space-x-1">
                                         {{-- Tombol View Detail (jika ada halaman show) --}}
-                                        {{-- <a href="{{ route('admin.users.show', $user) }}" title="Lihat Detail" class="action-button"><i data-lucide="eye"></i></a> --}}
+                                        {{-- <a href="{{ route('admin.users.show', $user) }}" title="Lihat Detail"
+                                            class="action-button"><i data-lucide="eye"></i></a> --}}
 
                                         {{-- Hanya Super Admin yang bisa Edit & Hapus --}}
                                         @if (auth()->user()->isSuperAdmin())

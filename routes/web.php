@@ -1,9 +1,5 @@
 <?php
 
-// --------------------------------------------------------------------------
-// Import Semua Controller di Awal
-// --------------------------------------------------------------------------
-
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
 use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
@@ -149,8 +145,6 @@ Route::middleware(['auth'])->group(function () {
 
 });
 // --- Akhir Grup Rute Utama Otentikasi ---
-
-
 // --------------------------------------------------------------------------
 // Rute Otentikasi Bawaan Laravel (dari Breeze/Jetstream)
 // --------------------------------------------------------------------------
