@@ -11,7 +11,7 @@
                 <p class="text-sm text-gray-500 mt-1">
                     Ringkasan data presensi hari ini ({{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM YYYY') }})
                     {{-- Ganti 'Memuat...' dengan waktu update jika perlu real-time --}}
-                    {{-- <span id="last-updated-time"></span> --}}
+                    <span id="last-updated-time"></span>
                 </p>
             </div>
             {{-- Filter (bisa diaktifkan nanti) --}}

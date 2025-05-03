@@ -172,7 +172,7 @@
                                             {{ $att->status }}
                                         </span>
                                     </td>
-                                    {{-- <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                         {{ $att->tanggal->isoFormat('D MMM YYYY') }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
@@ -190,7 +190,7 @@
                                         <span
                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">
                                             {{ $att->status }} </span>
-                                    </td> --}}
+                                    </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
                                         @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
                                             <img src="{{ Storage::url($att->selfie_path) }}" alt="Selfie"
