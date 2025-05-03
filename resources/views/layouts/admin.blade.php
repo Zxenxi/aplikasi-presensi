@@ -8,13 +8,12 @@
 
     {{-- Load CSS & JS via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     {{-- Hapus <script> dan <style> inline dari HTML asli --}}
     {{-- Style CSS sudah di app.css (Tailwind), JS di app.js (Alpine, Lucide) --}}
-    <style>
+    {{-- <style>
         /* Gaya Scrollbar, Navigasi, Badge, dll. (Sama seperti sebelumnya) */
         ::-webkit-scrollbar {
             width: 6px;
@@ -395,7 +394,7 @@
         .form-group {
             margin-bottom: 16px;
         }
-    </style>
+    </style> --}}
 </head>
 
 <body class="bg-gray-100 text-gray-900 antialiased font-sans" x-data="presensiApp"> {{-- Tambah x-data --}}

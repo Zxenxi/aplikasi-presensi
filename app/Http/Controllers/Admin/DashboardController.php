@@ -84,31 +84,38 @@ class DashboardController extends Controller
         $trendLabels = [];
         $trendHadirData = [];
         $trendTelatData = [];
-        $trendLainData = []; // Izin, Sakit, Absen (jika ada)
+        $trendLainData = [];
         $currentDate = Carbon::parse($startDate);
-       // Ganti blok 'while' yang lama dengan ini:
-        while ($currentDate <= Carbon::parse($endDate)) {
-            $dateStr = $currentDate->toDateString();
-            $trendLabels[] = $currentDate->isoFormat('D MMM'); // Format tanggal singkat
-
-            // 1. Filter dulu collection $trendData berdasarkan tanggal saat ini
-            $dailyData = $trendData->where('tanggal', $dateStr);
-
-            // 2. Cari item dengan status yang sesuai dari hasil filter harian ($dailyData)
+        $endDateCarbon = Carbon::parse($endDate); // Parse end date sekali saja
+        
+        while ($currentDate <= $endDateCarbon) { // Loop dari tanggal mulai hingga tanggal akhir
+            $trendLabels[] = $currentDate->isoFormat('D MMM'); // Format label tanggal (misal: 3 Mei)
+        
+            // --- INI BAGIAN PENTING YANG DIPERBAIKI ---
+            // Filter collection $trendData dimana tanggal item (objek Carbon) sama dengan $currentDate (objek Carbon)
+            $dailyData = $trendData->filter(function ($item) use ($currentDate) {
+                // $item->tanggal adalah objek Carbon karena ada casting di Model
+                return $item->tanggal->isSameDay($currentDate); // Gunakan isSameDay untuk perbandingan tanggal
+            });
+            // --- AKHIR BAGIAN PENTING ---
+        
+            // Cari status ('Hadir', 'Telat', 'Izin', 'Sakit') dalam data harian ($dailyData) yang sudah difilter
             $hadir = $dailyData->firstWhere('status', 'Hadir');
             $telat = $dailyData->firstWhere('status', 'Telat');
             $izin = $dailyData->firstWhere('status', 'Izin');
             $sakit = $dailyData->firstWhere('status', 'Sakit');
-            // Tambahkan status lain jika ada
-
-            // 3. Ambil nilai 'count' dari item yang ditemukan (hasil agregasi COUNT(*)), atau 0 jika tidak ada
+        
+            // Ambil nilai 'count' dari hasil agregasi database, atau 0 jika status tidak ditemukan untuk hari itu
             $trendHadirData[] = $hadir ? $hadir->count : 0;
             $trendTelatData[] = $telat ? $telat->count : 0;
             $trendLainData[] = ($izin ? $izin->count : 0) + ($sakit ? $sakit->count : 0); // Gabungkan Izin & Sakit
-
+        
             $currentDate->addDay(); // Lanjut ke hari berikutnya
         }
-// Sisa kode untuk $chartTrendKehadiran tetap sama...
+        
+        // --- AKHIR BLOK PENGGANTI ---
+        
+        // Buat struktur data chart (ini seharusnya sudah benar)
         $chartTrendKehadiran = [
             'labels' => $trendLabels,
             'datasets' => [
@@ -117,8 +124,7 @@ class DashboardController extends Controller
                 ['label' => 'Izin/Sakit', 'data' => $trendLainData, 'borderColor' => '#6366f1', 'backgroundColor' => 'rgba(99, 102, 241, 0.1)', 'tension' => 0.1],
             ]
         ];
-
-
+        
         // --- Data untuk Chart Ringkasan Guru Hari Ini (Pie/Doughnut) ---
          $chartRingkasanGuru = [
             'labels' => ['Hadir', 'Telat', 'Izin', 'Sakit', 'Absen'],
