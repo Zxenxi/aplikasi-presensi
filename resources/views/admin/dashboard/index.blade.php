@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div class="p-4 sm:p-6 lg:p-8 space-y-6 h-full">
         {{-- Judul Selamat Datang --}}
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
@@ -16,7 +16,6 @@
             </div>
             {{-- Filter (bisa diaktifkan nanti) --}}
         </div>
-
         {{-- Ringkasan Statistik --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {{-- Total Siswa --}}
@@ -72,7 +71,7 @@
         </div>
 
         {{-- Chart & Daftar Tidak Hadir --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"> {{-- Ubah jadi 3 kolom --}}
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6"> {{-- Ubah jadi 3 kolom --}}
             {{-- Kolom Chart Tren --}}
             <div class="lg:col-span-2 bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
                 {{-- Lebarkan jadi 2 kolom --}}
@@ -86,9 +85,8 @@
                     <canvas id="chartTrendKehadiran"></canvas> {{-- Canvas untuk chart tren --}}
                 </div>
             </div>
-
             {{-- Kolom Kanan (Ringkasan Guru & Daftar Tidak Hadir) --}}
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-1 space-y-6">
                 {{-- Chart Ringkasan Guru --}}
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
@@ -98,7 +96,6 @@
                         <canvas id="chartRingkasanGuru"></canvas> {{-- Canvas untuk chart guru --}}
                     </div>
                 </div>
-
                 {{-- Daftar Guru Tidak Hadir --}}
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
@@ -125,7 +122,46 @@
                         @endforelse
                     </ul>
                 </div>
-
+            </div>
+            <div class="lg:col-span-1 space-y-6">
+                {{-- === WIDGET BARU: Petugas Piket Hari Ini === --}}
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base font-semibold text-gray-800">Petugas Piket Hari Ini</h3>
+                        {{-- Link ke halaman Jadwal Piket penuh (jika login sbg Super Admin) --}}
+                        @if (Auth::user()->isSuperAdmin())
+                            <a href="{{ route('admin.picket-schedules.index') }}"
+                                class="text-xs text-indigo-600 hover:underline">
+                                Lihat Jadwal
+                            </a>
+                        @endif
+                    </div>
+                    <ul class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        @forelse($petugasPiketHariIni as $jadwal)
+                            <li class="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50">
+                                <img class="h-9 w-9 rounded-full object-cover flex-shrink-0 ring-1 ring-gray-200"
+                                    src="https://ui-avatars.com/api/?name={{ urlencode($jadwal->user?->name ?? '?') }}&background=7c3aed&color=ffffff"
+                                    {{-- Warna Ungu Piket --}} alt="{{ $jadwal->user?->name ?? 'Petugas' }}">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                        {{ $jadwal->user?->name ?? 'Nama Tidak Ditemukan' }}</p>
+                                    <p class="text-xs text-gray-500 truncate">
+                                        {{ $jadwal->user?->role ?? 'Role Tidak Diketahui' }}</p>
+                                    {{-- Tampilkan catatan jika ada --}}
+                                    @if ($jadwal->notes)
+                                        <p class="text-xs text-gray-600 mt-1 italic">"{{ $jadwal->notes }}"</p>
+                                    @endif
+                                </div>
+                                {{-- Bisa tambahkan info kontak jika perlu/tersedia --}}
+                                {{-- <span class="text-xs text-indigo-600">Kontak</span> --}}
+                            </li>
+                        @empty
+                            <li class="text-center text-sm text-gray-500 py-6">
+                                Tidak ada petugas piket yang terjadwal hari ini.
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
                 {{-- Daftar Siswa Tidak Hadir --}}
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
                     <div class="flex justify-between items-center mb-4">

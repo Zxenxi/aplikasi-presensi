@@ -1,17 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
-use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AttendanceController;
-// Controller Admin
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PicketScheduleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+// Controller Admin
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
-use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
 
 // ... (sisa kode routes dimulai di sini) ...
 /*
@@ -29,7 +30,6 @@ use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController
 // Rute Publik & Redirect Awal
 // --------------------------------------------------------------------------
 
-// Rute halaman utama ('/')
 // Rute halaman utama ('/')
 Route::get('/', function () {
     // Gunakan Auth::check()
@@ -114,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
 
             // Manajemen Presensi Manual (Admin & Piket bisa lihat index, CRUD hanya Super Admin via Controller)
             Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
-
+            Route::resource('/picket-schedules', PicketScheduleController::class)->except(['show']);
             // Laporan (Admin & Piket bisa lihat & export)
             Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
             Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');

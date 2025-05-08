@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\PicketSchedule;
 use App\Models\User; // Import User
-use App\Models\Attendance; // Import Attendance
-use App\Models\Kelas; // Import Kelas
 use Carbon\Carbon; // Import Carbon
+use App\Http\Controllers\Controller;
+use App\Models\Kelas; // Import Kelas
+use App\Models\Attendance; // Import Attendance
 use Illuminate\Support\Facades\DB; // Import DB Facade for complex queries if needed
 
 class DashboardController extends Controller
@@ -112,7 +113,10 @@ class DashboardController extends Controller
         
             $currentDate->addDay(); // Lanjut ke hari berikutnya
         }
-        
+          // --- === DATA BARU: Petugas Piket Hari Ini === ---
+          $petugasPiketHariIni = PicketSchedule::with('user') // Ambil data user terkait
+          ->where('duty_date', $today)
+          ->get();
         // --- AKHIR BLOK PENGGANTI ---
         
         // Buat struktur data chart (ini seharusnya sudah benar)
@@ -161,7 +165,8 @@ class DashboardController extends Controller
             'siswaTidakHadir',
             'guruTidakHadir',
             'chartTrendKehadiran', // Data untuk chart tren
-            'chartRingkasanGuru' // Data untuk chart ringkasan guru
+            'chartRingkasanGuru', // Data untuk chart ringkasan guru
+            'petugasPiketHariIni'
         ));
     }
 }
