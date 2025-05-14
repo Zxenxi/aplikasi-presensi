@@ -2,34 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceController; // User Attendance
+// Controller Admin
 use App\Http\Controllers\Admin\PicketScheduleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-// Controller Admin
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
-use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
-use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // Admin Attendance
 
-// ... (sisa kode routes dimulai di sini) ...
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Di sini Anda bisa mendaftarkan web routes untuk aplikasi Anda. Route ini
-| dimuat oleh RouteServiceProvider dan semuanya akan
-| ditugaskan ke grup middleware "web". Buat sesuatu yang hebat!
-|
-*/
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
-// --------------------------------------------------------------------------
-// Rute Publik & Redirect Awal
-// --------------------------------------------------------------------------
-
+// ... (kode awal, redirect home, route dashboard default, route profile) ...
 // Rute halaman utama ('/')
 Route::get('/', function () {
     // Gunakan Auth::check()
@@ -62,7 +48,6 @@ Route::get('/', function () {
 // --------------------------------------------------------------------------
 // Grup Rute Utama yang Membutuhkan Otentikasi (Login)
 // --------------------------------------------------------------------------
-Route::middleware(['auth'])->group(function () {
 
     // Dashboard Default Bawaan Laravel (Fallback)
     Route::get('/dashboard', function () {
@@ -102,51 +87,66 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [AttendanceController::class, 'store'])->name('store'); // POST ke /presensi
             Route::get('/riwayat', [AttendanceController::class, 'index'])->name('history');
     });
-
-    // --- Grup Rute Area Admin (Hanya Super Admin & Petugas Piket) ---
-    Route::prefix('admin') // Semua URL diawali /admin
-        ->name('admin.') // Semua nama route diawali admin.
-        ->middleware('role:Super Admin,Petugas Piket') // Hanya role Admin/Piket
-        ->group(function () {
-
-            // Dashboard Admin
-            Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-
-            // Manajemen Presensi Manual (Admin & Piket bisa lihat index, CRUD hanya Super Admin via Controller)
-            Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
-            Route::resource('/picket-schedules', PicketScheduleController::class)->except(['show']);
-            // Laporan (Admin & Piket bisa lihat & export)
-            Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
-            Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
-            Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf'); // Sesuaikan nama route PDF
-
-            // Daftar Kelas (Admin & Piket bisa lihat)
-            Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index');
-
-            // --- Grup Rute Khusus Super Admin ---
-            // Hanya Super Admin yang bisa mengakses route di dalam grup ini
-            Route::middleware('role:Super Admin')->group(function () {
-                // User Management
-                Route::resource('/users', AdminUserController::class);
-
-                // Class Management (CRUD Actions)
-                Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
-                Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
-                Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
-
-                // Application Settings
-                Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
-                Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
-            });
-            // --- Akhir Grup Khusus Super Admin ---
-
-        });
-    // --- Akhir Grup Rute Area Admin ---
-
+// --- Rute Presensi (Hanya Guru & Siswa) ---
+Route::prefix('presensi')
+    ->name('attendance.')
+    ->middleware('role:Guru,Siswa') // Middleware role statis
+    ->group(function () {
+        Route::get('/buat', [AttendanceController::class, 'create'])->name('create');
+        Route::post('/', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/riwayat', [AttendanceController::class, 'index'])->name('history');
 });
-// --- Akhir Grup Rute Utama Otentikasi ---
-// --------------------------------------------------------------------------
-// Rute Otentikasi Bawaan Laravel (dari Breeze/Jetstream)
-// --------------------------------------------------------------------------
-// Pastikan file ini di-require untuk menangani login, logout, dll.
+
+// --- Grup Rute Area Admin ---
+// Middleware role statis di sini akan membatasi akses ke SELURUH KONTROLLER di dalam grup ini
+// hanya untuk user dengan role Super Admin atau Petugas Piket statis.
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth', 'role:Super Admin,Petugas Piket']) // <-- MIDDLEWARE AUTH & ROLE STATIS DI TINGKAT GRUP
+    ->group(function () {
+
+        // Dashboard Admin (Middleware grup berlaku)
+        // Otorisasi tambahan BISA di controller jika ada nuansa lain
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // --- Route untuk Manajemen Presensi Manual (Admin) ---
+        // Middleware grup 'role' berlaku di sini.
+        // Kontrol akses spesifik (index, edit, update) dilakukan DI DALAM AdminAttendanceController
+        // menggunakan Gate dinamis yang memeriksa jadwal piket hari ini.
+        // create, store, destroy tetap hanya untuk Super Admin via cek di controller.
+        Route::resource('/attendances', AdminAttendanceController::class)->except(['show']); // <-- Biarkan TANPA middleware 'can' atau 'role' tambahan di sini
+
+        // Manajemen Jadwal Piket (Middleware grup berlaku. Otorisasi Super Admin di controller)
+         Route::resource('/picket-schedules', PicketScheduleController::class)->except(['show']);
+
+        // Laporan (Middleware grup berlaku. Otorisasi di controller berdasarkan Super Admin / Petugas Piket statis)
+        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
+        Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf');
+
+        // Daftar Kelas (Middleware grup berlaku. Otorisasi di controller berdasarkan Super Admin / Petugas Piket statis)
+        Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index');
+
+        // --- Grup Rute Khusus Super Admin ---
+        // Middleware ini akan membatasi lebih lanjut DI DALAM grup /admin
+        // hanya untuk user dengan role Super Admin
+        Route::middleware('role:Super Admin')->group(function () {
+             // User Management (Middleware grup berlaku. Otorisasi Super Admin di controller)
+             Route::resource('/users', AdminUserController::class);
+
+             // Class Management (CRUD Actions) (Middleware grup berlaku. Otorisasi Super Admin di controller)
+             Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
+             Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
+             Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
+
+             // Application Settings (Middleware grup berlaku. Otorisasi Super Admin di controller)
+             Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
+             Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+        });
+        // --- Akhir Grup Khusus Super Admin ---
+
+    });
+// --- Akhir Grup Rute Area Admin ---
+
+// --- Rute Otentikasi Bawaan Laravel ---
 require __DIR__.'/auth.php';

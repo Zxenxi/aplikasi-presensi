@@ -2,23 +2,35 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\PicketSchedule;
+use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
-class AppServiceProvider extends ServiceProvider
+class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
+    protected $policies = [
         //
-    }
+    ];
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+
+        // Definisikan Gate 'manageTodayAttendanceAdmin'
+        // Mengizinkan akses jika user adalah Super Admin ATAU terjadwal piket hari ini.
+        Gate::define('manageTodayAttendanceAdmin', function (User $user) {
+            if ($user->isSuperAdmin()) {
+                return true; // Super Admin selalu diizinkan
+            }
+
+            // Cek apakah user terjadwal piket hari ini.
+            return PicketSchedule::where('user_id', $user->id)
+                                 ->whereDate('duty_date', Carbon::today())
+                                 ->exists();
+        });
+
+        // Anda tidak perlu mengubah Gate atau Policy lain di sini.
     }
 }

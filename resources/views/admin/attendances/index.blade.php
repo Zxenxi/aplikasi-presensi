@@ -101,84 +101,62 @@
                                 Aksi</th>
                         </tr>
                     </thead>
+                    {{-- Contoh di resources/views/admin/attendances/index.blade.php (bagian tbody tabel) --}}
+
+                    {{-- Contoh di resources/views/admin/attendances/index.blade.php (bagian tbody tabel) --}}
+
+                    {{-- Contoh di resources/views/admin/attendances/index.blade.php (bagian tbody tabel) --}}
+
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($attendances as $att)
-                            <tr>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $att->tanggal->isoFormat('D MMM YYYY') }}</td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $att->user->name ?? 'N/A' }}</td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $att->user?->role === 'Siswa' ? $att->user?->kelas?->nama_kelas ?? '-' : '-' }}
+                        @forelse($attendances as $attendance)
+                            <tr class="hover:bg-gray-50">
+                                {{-- ... kolom data presensi (Nama, Tanggal, Status, Jam Masuk, dll.) ... --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $attendance->user->name ?? 'N/A' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    {{ $attendance->tanggal->isoFormat('dddd, D MMMM Y') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $attendance->status }}
                                 </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $att->jam_masuk ? \Carbon\Carbon::parse($att->jam_masuk)->format('H:i') : '-' }}
-                                </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm">
-                                    @php
-                                        $statusBadge = match ($att->status) {
-                                            'Hadir' => 'badge-green',
-                                            'Telat' => 'badge-yellow',
-                                            'Izin' => 'badge-blue',
-                                            'Sakit' => 'badge-purple',
-                                            default => 'badge-red',
-                                        };
-                                    @endphp
-                                    <span class="status-badge {{ $statusBadge }}"> {{ $att->status }} </span>
-                                </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
-                                    @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
-                                        <img src="{{ Storage::url($att->selfie_path) }}" alt="Selfie"
-                                            class="w-8 h-8 object-cover rounded-full shadow inline-block" loading="lazy">
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm">
-                                    @if (!is_null($att->latitude))
-                                        {{-- Cek jika ada data GPS --}}
-                                        @if (is_null($att->is_location_valid))
-                                            <span class="status-badge badge-gray">N/A</span>
-                                        @elseif($att->is_location_valid)
-                                            <span class="status-badge badge-green">Valid</span>
-                                        @else
-                                            <span class="status-badge badge-red">Tidak Valid</span>
-                                        @endif
-                                    @else
-                                        <span class="text-gray-400 text-xs">Manual</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-center">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $attendance->jam_masuk ?? '-' }}</td>
+                                {{-- ... kolom lain jika ada (misal lokasi, selfie) ... --}}
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     <div class="flex justify-center items-center space-x-1">
-                                        {{-- Tombol Edit & Hapus HANYA untuk Super Admin --}}
-                                        @if (Auth::user()->isSuperAdmin())
-                                            {{-- Tombol Edit --}}
-                                            <a href="{{ route('admin.attendances.edit', $att) }}" title="Edit Presensi"
-                                                class="action-button">
+                                        {{-- Tombol Edit: Hanya tampil jika user lolos Gate manageTodayAttendanceAdmin (Super Admin ATAU terjadwal piket hari ini) --}}
+                                        @can('manageTodayAttendanceAdmin')
+                                            {{-- Note: Controller sudah membatasi edit hanya hari ini untuk non-admin --}}
+                                            <a href="{{ route('admin.attendances.edit', $attendance) }}" title="Edit Presensi"
+                                                class="action-button text-blue-400 hover:text-blue-600 hover:bg-blue-50">
                                                 <i data-lucide="edit-2"></i>
                                             </a>
-                                            {{-- Tombol Hapus --}}
-                                            <form action="{{ route('admin.attendances.destroy', $att) }}" method="POST"
-                                                onsubmit="return confirm('Yakin ingin menghapus data presensi ini? Foto selfie terkait juga akan dihapus.');"
+                                        @endcan
+
+                                        {{-- Tombol Hapus: Tetap hanya untuk Super Admin --}}
+                                        @if (Auth::user()->isSuperAdmin())
+                                            <form action="{{ route('admin.attendances.destroy', $attendance) }}"
+                                                method="POST" onsubmit="return confirm('Yakin hapus data presensi ini?');"
                                                 class="inline">
-                                                @csrf
-                                                @method('DELETE')
+                                                @csrf @method('DELETE')
                                                 <button type="submit" title="Hapus Presensi"
                                                     class="action-button text-red-400 hover:text-red-600 hover:bg-red-50">
                                                     <i data-lucide="trash-2"></i>
                                                 </button>
                                             </form>
-                                        @else
-                                            {{-- Petugas Piket tidak bisa edit/hapus --}}
-                                            <span class="text-gray-400 text-xs">-</span>
+                                        @endif
+
+                                        {{-- Tampilkan penanda jika tidak ada aksi yang tersedia untuk baris ini --}}
+                                        {{-- Tampilkan jika BUKAN Super Admin DAN tidak bisa manageAttendanceAdmin --}}
+                                        @if (!Auth::user()->isSuperAdmin() && !Gate::allows('manageTodayAttendanceAdmin'))
+                                            -
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data presensi
-                                    ditemukan.</td>
+                                <td colspan="99" class="text-center py-10 text-gray-500">Tidak ada data presensi
+                                    ditemukan.</td> {{-- Sesuaikan colspan --}}
                             </tr>
                         @endforelse
                     </tbody>
