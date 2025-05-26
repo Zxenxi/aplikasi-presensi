@@ -18,7 +18,27 @@
                     x-data="{ selectedStatus: '{{ old('status', $attendance->status) }}' }">
                     @csrf
                     @method('PUT')
+                    {{-- ... (bagian atas form) ... --}}
 
+                    {{-- Keterangan/Remarks --}}
+                    <div>
+                        <label for="remarks" class="form-label">Keterangan/Catatan (Opsional)</label>
+                        <textarea id="remarks" name="remarks" rows="3" class="form-input @error('remarks') border-red-500 @enderror"
+                            placeholder="Contoh: Izin disetujui via surat, Sakit berdasarkan info wali kelas, dll.">{{ old('remarks', $attendance->remarks ?? $attendance->keterangan) }}</textarea>
+                        @error('remarks')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Info siapa yang terakhir update --}}
+                    @if ($attendance->updatedBy)
+                        <div class="text-xs text-gray-500 mt-4 border-t pt-2">
+                            Terakhir diubah oleh: {{ $attendance->updatedBy->name }} pada
+                            {{ $attendance->updated_at->isoFormat('D MMM YYYY, HH:mm') }}
+                        </div>
+                    @endif
+
+                    {{-- ... (Tombol Aksi) ... --}}
                     {{-- Info User (Readonly) --}}
                     <div>
                         <label class="form-label">Pengguna</label>
@@ -45,7 +65,8 @@
                         <label for="status" class="form-label">Status <span class="text-red-500">*</span></label>
                         <select name="status" id="status" x-model="selectedStatus" required
                             class="form-select @error('status') border-red-500 @enderror">
-                            <option value="Izin" {{ old('status', $attendance->status) == 'Izin' ? 'selected' : '' }}>Izin
+                            <option value="Izin" {{ old('status', $attendance->status) == 'Izin' ? 'selected' : '' }}>
+                                Izin
                             </option>
                             <option value="Sakit" {{ old('status', $attendance->status) == 'Sakit' ? 'selected' : '' }}>
                                 Sakit</option>

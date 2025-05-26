@@ -41,6 +41,13 @@
                             <i data-lucide="calendar-check" class="h-5 w-5"></i>
                             <span class="font-medium">Presensi</span>
                         </a>
+                        {{-- Contoh penambahan di header/topnav untuk Super Admin --}}
+                        @if (Auth::user()->isSuperAdmin())
+                            <a href="{{ route('admin.picket_schedules.index') }}" title="Jadwal Piket"
+                                class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.picket_schedules.*') ? 'active' : '' }}">
+                                <i data-lucide="calendar-days" class="w-4 h-4"></i><span>Jadwal Piket</span>
+                            </a>
+                        @endif
                         {{-- Link Pengaturan hanya untuk Super Admin --}}
                     @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
                         {{-- === Menu untuk Guru & Siswa === --}}

@@ -133,21 +133,28 @@ class AttendanceController extends Controller
     /**
      * Show the form for editing the specified resource.
      * Hanya Super Admin.
-     */
+     */// app/Http/Controllers/Admin/AttendanceController.php
+// ... (use statements) ...
+
     public function edit(Attendance $attendance)
     {
-        // Otorisasi: Hanya Super Admin
-        
-        /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
-        $user = Auth::user();
+        /** @var \App\Models\User $loggedInUser */
+        $loggedInUser = Auth::user();
 
-        if (!$user->isSuperAdmin()) {
-            abort(403, 'Anda tidak memiliki izin...');
+        // Otorisasi: Super Admin ATAU Petugas Piket
+        if (!$loggedInUser->isSuperAdmin() && !$loggedInUser->isPetugasPiket()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah data presensi ini.');
         }
 
-         $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
-         $attendance->load('user'); // Load relasi user
-         return view('admin.attendances.edit', compact('attendance', 'users'));
+        // Jika Petugas Piket, mungkin ada batasan tambahan?
+        // Misalnya, hanya boleh edit data hari ini atau beberapa hari ke belakang?
+        // if ($loggedInUser->isPetugasPiket() && $attendance->tanggal < now()->subDays(1)->toDateString()) {
+        //     abort(403, 'Petugas piket hanya dapat mengubah data presensi hari ini.');
+        // }
+
+        $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
+        $attendance->load('user');
+        return view('admin.attendances.edit', compact('attendance', 'users'));
     }
 
     /**
@@ -156,55 +163,52 @@ class AttendanceController extends Controller
      */
     public function update(Request $request, Attendance $attendance)
     {
-        // Otorisasi: Hanya Super Admin
-       /** @var \App\Models\User $user */ // <-- TAMBAHKAN PHPDoc HINT INI
-       $user = Auth::user();
-
-       if (!$user->isSuperAdmin()) {
-          abort(403, 'Anda tidak memiliki izin...');
-      }
-
-        $validated = $request->validate([
-            // User ID tidak diubah saat edit, jadi tidak perlu divalidasi ulang di sini
-            // 'user_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date',
-            'status' => 'required|in:Hadir,Telat,Izin,Sakit,Absen',
-            'jam_masuk' => 'nullable|required_if:status,Hadir,Telat|date_format:H:i',
-            'keterangan' => 'nullable|string|max:255',
-        ],[
-            'jam_masuk.required_if' => 'Jam masuk wajib diisi jika status Hadir atau Telat.'
-        ]);
-
-         // Cek duplikasi (kecuali untuk record yang sedang diedit)
-         // Tidak perlu cek duplikasi saat update jika user_id dan tanggal tidak boleh diubah
-         $existing = Attendance::where('user_id', $attendance->user_id) // Gunakan user_id dari record yg diedit
-                              ->where('tanggal', $validated['tanggal'])
-                              ->where('id', '!=', $attendance->id)
-                              ->first();
-         if ($existing) {
-             return back()->with('error', 'Sudah ada data presensi lain untuk user & tanggal tersebut.')->withInput();
-         }
-
-
-         // Jika status bukan Hadir/Telat, pastikan jam masuk null
-        if (!in_array($validated['status'], ['Hadir', 'Telat'])) {
-            $validated['jam_masuk'] = null;
-        } else {
-            // Jika Hadir/Telat, pastikan jam_masuk diisi
-             if (empty($validated['jam_masuk'])) {
-                 return back()->withErrors(['jam_masuk' => 'Jam masuk wajib diisi untuk status Hadir/Telat.'])->withInput();
-             }
+        /** @var \App\Models\User $loggedInUser */
+        $loggedInUser = Auth::user();
+    
+        if (!$loggedInUser->isSuperAdmin() && !$loggedInUser->isPetugasPiket()) {
+            abort(403, 'Anda tidak memiliki izin untuk memperbarui data presensi ini.');
         }
-
-        // Hanya update field yang relevan untuk input manual
-        $attendance->update([
-             'tanggal' => $validated['tanggal'],
-             'status' => $validated['status'],
-             'jam_masuk' => $validated['jam_masuk'], // Akan null jika status bukan Hadir/Telat
-             'keterangan' => $validated['keterangan'],
-             // Biarkan field selfie, gps, dll tetap seperti semula
+    
+        // Tambahkan validasi untuk 'remarks' jika Anda menggunakan field ini
+        // Kolom 'keterangan' di validasi Anda sebelumnya bisa diganti/disesuaikan menjadi 'remarks'
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'status' => ['required', Rule::in(['Hadir', 'Telat', 'Izin', 'Sakit', 'Absen'])],
+            'jam_masuk' => 'nullable|required_if:status,Hadir,Telat|date_format:H:i',
+            // 'keterangan' => 'nullable|string|max:255', // Ganti atau tambahkan 'remarks'
+            'remarks' => 'nullable|string|max:1000', // Contoh jika menggunakan 'remarks'
+        ], [
+            'jam_masuk.required_if' => 'Jam masuk wajib diisi jika status Hadir atau Telat.',
         ]);
-
+    
+        // Cek duplikasi (kecuali untuk record yang sedang diedit) - logika Anda sudah baik
+        $existing = Attendance::where('user_id', $attendance->user_id)
+                            ->where('tanggal', $validated['tanggal'])
+                            ->where('id', '!=', $attendance->id)
+                            ->first();
+        if ($existing) {
+            return back()->with('error', 'Sudah ada data presensi lain untuk user & tanggal tersebut.')->withInput();
+        }
+    
+        // Jika status bukan Hadir/Telat, pastikan jam masuk null
+        $dataToUpdate = [
+            'tanggal' => $validated['tanggal'],
+            'status' => $validated['status'],
+            'jam_masuk' => (in_array($validated['status'], ['Hadir', 'Telat']) && !empty($validated['jam_masuk'])) ? $validated['jam_masuk'] : null,
+            // 'keterangan' => $validated['keterangan'] ?? null, // Ganti dengan remarks
+            'remarks' => $validated['remarks'] ?? null,
+            'updated_by_user_id' => $loggedInUser->id, // Simpan ID user yang melakukan update
+        ];
+    
+        // Jika Hadir/Telat, tapi jam_masuk kosong (setelah validasi required_if)
+        if (in_array($validated['status'], ['Hadir', 'Telat']) && empty($dataToUpdate['jam_masuk'])) {
+            // Controller Anda sudah punya validasi required_if, tapi ini pengaman tambahan
+            return back()->withErrors(['jam_masuk' => 'Jam masuk wajib diisi untuk status Hadir/Telat.'])->withInput();
+        }
+    
+        $attendance->update($dataToUpdate);
+    
         return redirect()->route('admin.attendances.index')->with('success', 'Data presensi berhasil diperbarui.');
     }
 
