@@ -95,7 +95,27 @@
                         </div>
                     </div>
 
+                    {{-- ... field lainnya ... --}}
 
+                    {{-- Status Aktif --}}
+                    <div class="mt-4">
+                        <label for="is_active" class="inline-flex items-center">
+                            <input id="is_active" type="checkbox"
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}
+                                @if (Auth::id() === $user->id && $user->is_active) disabled title="Anda tidak dapat menonaktifkan akun Anda sendiri." @endif>
+                            <span class="ms-2 text-sm text-gray-600">Akun Aktif</span>
+                        </label>
+                        @if (Auth::id() === $user->id && $user->is_active)
+                            <p class="text-xs text-gray-500 mt-1">Anda tidak dapat menonaktifkan akun Anda sendiri.</p>
+                        @endif
+                        @error('is_active')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Tombol Aksi --}}
+                    {{-- ... --}}
                     {{-- Tombol Aksi --}}
                     <div class="flex justify-end space-x-3 pt-4">
                         <a href="{{ route('admin.users.index') }}"

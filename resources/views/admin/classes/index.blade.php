@@ -9,6 +9,9 @@
                 <p class="text-sm text-gray-500 mt-1">Kelola data kelas di sekolah.</p>
             </div>
             @if (auth()->user()->isSuperAdmin())
+                <a href="{{ route('admin.classes.promotionForm') }}" class="text-sm text-indigo-600 hover:underline">
+                    Kenaikan Kelas
+                </a>
                 <button type="button" @click="openCreateClassModal()" {{-- Panggil fungsi Alpine --}}
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <i data-lucide="plus" class="w-4 h-4 mr-1.5 -ml-1"></i> Tambah Kelas

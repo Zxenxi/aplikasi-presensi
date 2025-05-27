@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Kelas;
-use App\Models\User; // Untuk ambil data guru
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\User; // Untuk ambil data guru
 use Illuminate\Support\Facades\Auth; // Import Auth
 
 class KelasController extends Controller
@@ -27,7 +28,9 @@ class KelasController extends Controller
                       ->orderBy('tingkat')
                       ->orderBy('nama_kelas')
                       ->get();
-        $guru = User::where('role', 'Guru')->orderBy('name')->get();
+        // $guru = User::where('role', 'Guru')->orderBy('name')->get();
+        // Di KelasController::index()
+$guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->get();
 
         return view('admin.classes.index', compact('kelas', 'guru'));
     }
@@ -124,5 +127,75 @@ class KelasController extends Controller
 
         $kela->delete();
         return back()->with('success', 'Kelas berhasil dihapus.');
+    }
+     /**
+     * Menampilkan form untuk proses kenaikan kelas.
+     */
+    public function showPromotionForm()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        return view('admin.classes.promote', compact('kelas'));
+    }
+
+    /**
+     * Memproses kenaikan kelas.
+     */
+    public function processPromotion(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $validated = $request->validate([
+            'kelas_asal_id' => 'required|exists:kelas,id',
+            'kelas_tujuan_id' => 'required|exists:kelas,id|different:kelas_asal_id',
+            'siswa_ids' => 'required|array',
+            'siswa_ids.*' => 'exists:users,id', // Pastikan semua ID siswa valid
+        ], [
+            'kelas_asal_id.required' => 'Kelas asal harus dipilih.',
+            'kelas_tujuan_id.required' => 'Kelas tujuan harus dipilih.',
+            'kelas_tujuan_id.different' => 'Kelas tujuan tidak boleh sama dengan kelas asal.',
+            'siswa_ids.required' => 'Tidak ada siswa yang dipilih untuk dinaikkan kelasnya.',
+        ]);
+
+        $kelasAsal = Kelas::find($validated['kelas_asal_id']);
+        $kelasTujuan = Kelas::find($validated['kelas_tujuan_id']);
+
+        if (!$kelasAsal || !$kelasTujuan) {
+            return back()->with('error', 'Kelas asal atau tujuan tidak valid.');
+        }
+
+        $siswaUntukDinaikkan = User::where('role', 'Siswa')
+            ->where('kelas_id', $kelasAsal->id)
+            ->whereIn('id', $validated['siswa_ids']) // Hanya siswa yang diceklist dan ada di kelas asal
+            ->where('is_active', true) // Pertimbangkan hanya siswa aktif
+            ->get();
+
+        if ($siswaUntukDinaikkan->isEmpty()) {
+            return back()->with('warning', 'Tidak ada siswa aktif yang valid dari kelas asal yang dipilih untuk dipindahkan.');
+        }
+
+        $updatedCount = 0;
+        DB::beginTransaction();
+        try {
+            foreach ($siswaUntukDinaikkan as $siswa) {
+                $siswa->kelas_id = $kelasTujuan->id;
+                $siswa->save();
+                $updatedCount++;
+            }
+            DB::commit();
+            return redirect()->route('admin.classes.index')->with('success', "$updatedCount siswa dari kelas {$kelasAsal->nama_kelas} berhasil dinaikkan ke kelas {$kelasTujuan->nama_kelas}.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat proses kenaikan kelas: ' . $e->getMessage());
+        }
     }
 }

@@ -78,16 +78,24 @@
                 <table class="min-w-full divide-y divide-gray-200 user-table">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama
-                            </th> {{-- Ubah padding --}}
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Kelas/Info</th>
+                                Email
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kelas/Info
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Aksi</th>
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -132,25 +140,56 @@
                                     {{-- Gunakan $roleBadge di sini --}}
                                     <span class="status-badge {{ $roleBadge }}">{{ $user->role }}</span>
                                 </td>
+
                                 {{-- Kolom Kelas/Info --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $user->isSiswa() ? $user->kelas->nama_kelas ?? 'Belum ada kelas' : '-' }}
                                 </td>
+                                {{-- Kolom Status Aktif --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    @if ($user->is_active)
+                                        <span class="status-badge badge-green">Aktif</span>
+                                    @else
+                                        <span class="status-badge badge-red">Tidak Aktif</span>
+                                    @endif
+                                </td>
                                 {{-- Kolom Aksi --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     <div class="flex justify-center items-center space-x-1">
-                                        {{-- Tombol View Detail (jika ada) --}}
-                                        {{-- <a href="{{ route('admin.users.show', $user) }}" title="Lihat Detail" class="action-button"><i data-lucide="eye"></i></a> --}}
                                         @if (auth()->user()->isSuperAdmin())
+                                            {{-- Tombol Edit --}}
                                             <a href="{{ route('admin.users.edit', $user) }}" title="Edit"
                                                 class="action-button"><i data-lucide="edit-2"></i></a>
-                                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                                onsubmit="..." class="inline">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" title="Hapus"
-                                                    class="action-button text-red-400 hover:text-red-600 hover:bg-red-50"><i
-                                                        data-lucide="trash-2"></i></button>
-                                            </form>
+
+                                            {{-- Tombol Toggle Status --}}
+                                            {{-- Jangan tampilkan tombol nonaktifkan untuk diri sendiri --}}
+                                            @if (Auth::id() !== $user->id || !$user->is_active)
+                                                <form action="{{ route('admin.users.toggleStatus', $user) }}"
+                                                    method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PATCH') {{-- Atau POST, sesuaikan dengan route --}}
+                                                    <button type="submit"
+                                                        title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
+                                                        class="action-button {{ $user->is_active ? 'text-yellow-500 hover:text-yellow-700' : 'text-green-500 hover:text-green-700' }}">
+                                                        <i
+                                                            data-lucide="{{ $user->is_active ? 'user-x' : 'user-check' }}"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            {{-- Tombol Hapus (jangan hapus diri sendiri) --}}
+                                            @if (Auth::id() !== $user->id)
+                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                                    onsubmit="return confirm('Yakin ingin menghapus user {{ $user->name }}?');"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" title="Hapus"
+                                                        class="action-button text-red-400 hover:text-red-600 hover:bg-red-50">
+                                                        <i data-lucide="trash-2"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @else
                                             -
                                         @endif

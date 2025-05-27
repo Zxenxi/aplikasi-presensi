@@ -15,9 +15,8 @@ class DashboardController extends Controller
     public function index()
     {
         // --- Data Statistik Umum ---
-        $totalSiswa = User::where('role', 'Siswa')->count();
-        $totalGuru = User::where('role', 'Guru')->count();
-
+$totalSiswa = User::where('role', 'Siswa')->where('is_active', true)->count();
+$totalGuru = User::where('role', 'Guru')->where('is_active', true)->count();
         // --- Data Kehadiran Hari Ini ---
         $today = Carbon::today()->toDateString();
 
@@ -56,19 +55,16 @@ class DashboardController extends Controller
         $attendedGuruIds = $attendanceGuruToday->pluck('user_id');
 
         // Ambil Siswa yg TIDAK ada di daftar hadir hari ini
-        $siswaTidakHadir = User::where('role', 'Siswa')
-                               ->whereNotIn('id', $attendedSiswaIds)
-                               ->with('kelas') // Ambil data kelasnya
-                               ->latest() // Urutkan berdasarkan terbaru dibuat (atau kriteria lain)
-                               ->take(5) // Ambil 5 saja
-                               ->get();
-
-        // Ambil Guru yg TIDAK ada di daftar hadir hari ini
-        $guruTidakHadir = User::where('role', 'Guru')
-                             ->whereNotIn('id', $attendedGuruIds)
-                             ->latest()
-                             ->take(5)
-                             ->get();
+$siswaTidakHadir = User::where('role', 'Siswa')
+                       ->where('is_active', true) // TAMBAHAN
+                       ->whereNotIn('id', $attendedSiswaIds)
+                       // ...
+                       ->get();
+$guruTidakHadir = User::where('role', 'Guru')
+                       ->where('is_active', true) // TAMBAHAN
+                       ->whereNotIn('id', $attendedGuruIds)
+                       // ...
+                       ->get();
 
         // --- Data untuk Chart Tren Kehadiran (Misal 7 hari terakhir) ---
         $startDate = Carbon::today()->subDays(6)->toDateString();

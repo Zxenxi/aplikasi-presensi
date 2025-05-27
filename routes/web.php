@@ -143,6 +143,10 @@ Route::middleware(['auth'])->group(function () {
                  ->except(['show']) // Jika Anda tidak menggunakan halaman show individu
                  ->names('picket_schedules'); // Memberi nama route seperti admin.picket_schedules.index, .create, dll.
             // =============================================
+             Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
+            Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
+        
+            Route::patch('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
             });
             // --- Akhir Grup Khusus Super Admin ---
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -41,11 +42,25 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Coba otentikasi dulu
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Setelah otentikasi berhasil, cek status aktif
+        /** @var User $user */
+        $user = Auth::user(); // Ambil user yang baru saja login
+
+        if ($user && !$user->is_active) { // Jika user ada tapi tidak aktif
+            Auth::logout(); // Logout user tersebut
+            RateLimiter::hit($this->throttleKey()); // Hit rate limiter lagi bisa jadi opsi
+
+            throw ValidationException::withMessages([
+                'email' => __('Akun Anda tidak aktif. Silakan hubungi administrator.'), // Pesan error kustom
             ]);
         }
 

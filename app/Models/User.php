@@ -21,11 +21,16 @@ class User extends Authenticatable
         'password',
         'role', // <-- Tambahkan role
         'kelas_id', // <-- Tambahkan kelas_id
+        'is_active', 
     ];
 
     protected $hidden = [ 'password', 'remember_token', ];
-    protected $casts = [ 'email_verified_at' => 'datetime', ];
 
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed', // Laravel 10+ biasanya sudah default, tapi pastikan
+        'is_active' => 'boolean', // <-- TAMBAHKAN INI
+    ];
     // Relasi ke Presensi
     public function attendances() {
         return $this->hasMany(Attendance::class);

@@ -81,39 +81,39 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-         /** @var \App\Models\User $user */ // <-- PHPDoc Hint
-         $user = Auth::user();
+  // Di dalam Admin/UserController.php
 
-         // Otorisasi
-         if (!$user->isSuperAdmin()) abort(403, 'Akses Ditolak');
- 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'], // Pastikan email unik
-            'password' => ['required', 'confirmed', Rules\Password::defaults()], // Password wajib & perlu konfirmasi
-            'role' => ['required', 'in:Super Admin,Petugas Piket,Guru,Siswa'], // Role harus salah satu dari ini
-            'kelas_id' => ['nullable', 'required_if:role,Siswa', 'exists:kelas,id'], // Wajib ada jika role=Siswa, dan harus ada di tabel kelas
-        ], [
-            'kelas_id.required_if' => 'Kelas wajib diisi untuk role Siswa.',
-            'kelas_id.exists' => 'Kelas yang dipilih tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-        ]);
-
-        // Hash password sebelum disimpan
-        $validated['password'] = Hash::make($validated['password']);
-
-        // Jika role bukan Siswa, pastikan kelas_id null
-        if ($validated['role'] !== 'Siswa') {
-            $validated['kelas_id'] = null;
-        }
-
-        User::create($validated);
-
-        return redirect()->route('admin.users.index')->with('success', 'User baru berhasil ditambahkan.');
+public function store(Request $request)
+{
+    /** @var \App\Models\User $currentUser */
+    $currentUser = Auth::user();
+    if (!$currentUser->isSuperAdmin()) {
+        abort(403, 'Akses Ditolak');
     }
+
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'role' => ['required', 'in:Super Admin,Guru,Siswa'], // Hapus Petugas Piket jika sudah tidak ada
+        'kelas_id' => ['nullable', 'required_if:role,Siswa', 'exists:kelas,id'],
+        'is_active' => ['sometimes', 'boolean'], // 'sometimes' berarti jika ada di request, 'boolean' memastikan nilainya 0 atau 1
+    ], [
+        // ... (pesan validasi lainnya) ...
+    ]);
+
+    $validated['password'] = Hash::make($validated['password']);
+    if ($validated['role'] !== 'Siswa') {
+        $validated['kelas_id'] = null;
+    }
+
+    // Set default is_active jika tidak dikirim dari form (misal, checkbox tidak dicentang akan mengirim null)
+    $validated['is_active'] = $request->has('is_active'); // Jika checkbox 'is_active' ada dan dicentang, nilainya true
+
+    User::create($validated);
+
+    return redirect()->route('admin.users.index')->with('success', 'User baru berhasil ditambahkan.');
+}
 
     /**
      * Display the specified resource.
@@ -144,43 +144,48 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
-    {
-          /** @var \App\Models\User $currentUser */ // <-- PHPDoc Hint
-          $currentUser = Auth::user();
+// Di dalam Admin/UserController.php
 
-          // Otorisasi
-          if (!$currentUser->isSuperAdmin()) abort(403, 'Akses Ditolak');
-  
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id], // Abaikan email user ini saat cek unik
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()], // Password opsional saat update
-            'role' => ['required', 'in:Super Admin,Petugas Piket,Guru,Siswa'],
-            'kelas_id' => ['nullable', 'required_if:role,Siswa', 'exists:kelas,id'],
-        ],[
-            'kelas_id.required_if' => 'Kelas wajib diisi untuk role Siswa.',
-            'kelas_id.exists' => 'Kelas yang dipilih tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-        ]);
-
-        // Update password hanya jika field password diisi
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']); // Jangan update password jika kosong
-        }
-
-        // Jika role bukan Siswa, pastikan kelas_id null
-        if ($validated['role'] !== 'Siswa') {
-            $validated['kelas_id'] = null;
-        }
-
-        $user->update($validated);
-
-        return redirect()->route('admin.users.index')->with('success', 'Data user berhasil diperbarui.');
+public function update(Request $request, User $user)
+{
+    /** @var \App\Models\User $currentUser */
+    $currentUser = Auth::user();
+    if (!$currentUser->isSuperAdmin()) {
+        abort(403, 'Akses Ditolak');
     }
+
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+        'role' => ['required', 'in:Super Admin,Guru,Siswa'], // Hapus Petugas Piket jika sudah tidak ada
+        'kelas_id' => ['nullable', 'required_if:role,Siswa', 'exists:kelas,id'],
+        'is_active' => ['sometimes', 'boolean'],
+    ], [
+        // ... (pesan validasi lainnya) ...
+    ]);
+
+    if (!empty($validated['password'])) {
+        $validated['password'] = Hash::make($validated['password']);
+    } else {
+        unset($validated['password']);
+    }
+
+    if ($validated['role'] !== 'Siswa') {
+        $validated['kelas_id'] = null;
+    }
+
+    $validated['is_active'] = $request->has('is_active');
+
+    // Pencegahan: Super Admin tidak bisa menonaktifkan akunnya sendiri
+    if ($user->id === $currentUser->id && !$validated['is_active']) {
+        return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.')->withInput();
+    }
+
+    $user->update($validated);
+
+    return redirect()->route('admin.users.index')->with('success', 'Data user berhasil diperbarui.');
+}
 
     /**
      * Remove the specified resource from storage.
@@ -204,4 +209,25 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
     }
+    // Di dalam Admin/UserController.php
+
+public function toggleStatus(User $user)
+{
+    /** @var \App\Models\User $currentUser */
+    $currentUser = Auth::user();
+    if (!$currentUser->isSuperAdmin()) {
+        return back()->with('error', 'Anda tidak memiliki izin untuk melakukan aksi ini.');
+    }
+
+    // Pencegahan: Super Admin tidak bisa menonaktifkan akunnya sendiri
+    if ($user->id === $currentUser->id && $user->is_active) {
+        return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+    }
+
+    $user->is_active = !$user->is_active;
+    $user->save();
+
+    $message = $user->is_active ? 'User berhasil diaktifkan.' : 'User berhasil dinonaktifkan.';
+    return back()->with('success', $message);
+}
 }

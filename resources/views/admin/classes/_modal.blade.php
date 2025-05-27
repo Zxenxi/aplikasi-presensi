@@ -12,6 +12,7 @@
             <form id="classModalForm" method="POST" action="" @submit.prevent="saveClass()" class="space-y-4">
                 {{-- Action akan diisi Alpine --}}
                 @csrf
+
                 <input type="hidden" name="_method" id="classModalMethod" value="POST"> {{-- Method diisi Alpine (POST/PUT) --}}
 
                 {{-- Nama Kelas --}}
