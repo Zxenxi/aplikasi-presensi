@@ -38,7 +38,6 @@
                     <select name="role" id="role" x-model="selectedRole" class="form-select">
                         <option value="">Semua Role</option>
                         <option value="Super Admin">Super Admin</option>
-                        <option value="Petugas Piket">Petugas Piket</option>
                         <option value="Guru">Guru</option>
                         <option value="Siswa">Siswa</option>
                     </select>
@@ -126,8 +125,6 @@
 
                                         if ($role === 'Super Admin') {
                                             $roleBadge = 'badge-red'; // Sesuaikan warna badge jika perlu
-                                        } elseif ($role === 'Petugas Piket') {
-                                            $roleBadge = 'badge-purple';
                                         } elseif ($role === 'Guru') {
                                             $roleBadge = 'badge-cyan';
                                         } elseif ($role === 'Siswa') {

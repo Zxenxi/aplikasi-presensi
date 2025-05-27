@@ -60,8 +60,6 @@
                                 class="form-select @error('role') border-red-500 @enderror">
                                 <option value="Siswa" {{ old('role') == 'Siswa' ? 'selected' : '' }}>Siswa</option>
                                 <option value="Guru" {{ old('role') == 'Guru' ? 'selected' : '' }}>Guru</option>
-                                <option value="Petugas Piket" {{ old('role') == 'Petugas Piket' ? 'selected' : '' }}>
-                                    Petugas Piket</option>
                                 <option value="Super Admin" {{ old('role') == 'Super Admin' ? 'selected' : '' }}>Super
                                     Admin</option>
                             </select>

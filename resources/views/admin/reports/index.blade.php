@@ -68,6 +68,11 @@
                     </select>
                 </div>
 
+                <div class="col-span-6 sm:col-span-3"> {{-- Sesuaikan grid span jika perlu --}}
+                    <label for="search_user_name" class="form-label">Nama Pengguna</label>
+                    <input type="text" id="search_user_name" name="search_user_name"
+                        value="{{ $filters['search_user_name'] ?? '' }}" class="form-input" placeholder="Cari nama...">
+                </div>
 
                 {{-- Tombol Submit --}}
                 <div class="col-span-12 sm:col-span-2 md:col-span-1 ">

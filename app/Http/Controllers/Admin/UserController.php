@@ -15,25 +15,23 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request) // Terima $request
+ public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
 
-        // Otorisasi
-        if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
+        // if (!$currentUser->isSuperAdmin() && !$currentUser->isPetugasPiket()) { // Sesuaikan jika Petugas Piket dihapus
+        if (!$currentUser->isSuperAdmin()) { // Jika hanya Super Admin yang boleh
              abort(403, 'Akses Ditolak');
-         }
+        }
 
-        // Ambil nilai filter dari request
         $search = $request->input('search');
         $filterRole = $request->input('role');
         $filterKelasId = $request->input('kelas_id');
+        $filterStatusAktif = $request->input('status_aktif'); // <-- Tambah filter status aktif
 
-        // Query dasar dengan eager loading kelas
         $query = User::query()->with('kelas');
 
-        // Terapkan filter pencarian (Nama atau Email)
         $query->when($search, function ($q, $search) {
             return $q->where(function($subq) use ($search) {
                 $subq->where('name', 'like', "%{$search}%")
@@ -41,26 +39,25 @@ class UserController extends Controller
             });
         });
 
-        // Terapkan filter Role
         $query->when($filterRole, function ($q, $role) {
             return $q->where('role', $role);
         });
 
-        // Terapkan filter Kelas (hanya jika role adalah Siswa)
         if ($filterRole === 'Siswa') {
             $query->when($filterKelasId, function ($q, $kelasId) {
                 return $q->where('kelas_id', $kelasId);
             });
         }
 
-        // Urutkan dan lakukan paginasi
-        $users = $query->orderBy('name')->paginate(15)->withQueryString(); // withQueryString() agar filter terbawa di paginasi
+        // Filter berdasarkan status aktif
+        if ($filterStatusAktif !== null && $filterStatusAktif !== '') { // Cek jika ada value
+            $query->where('is_active', (bool)$filterStatusAktif);
+        }
 
-        // Ambil data kelas untuk dropdown filter
+        $users = $query->orderBy('name')->paginate(15)->withQueryString();
         $kelas = Kelas::orderBy('nama_kelas')->get();
 
-        // Kirim data users, kelas, dan filter aktif ke view
-        return view('admin.users.index', compact('users', 'kelas', 'search', 'filterRole', 'filterKelasId'));
+        return view('admin.users.index', compact('users', 'kelas', 'search', 'filterRole', 'filterKelasId', 'filterStatusAktif')); // Kirim filterStatusAktif ke view
     }
 
 
