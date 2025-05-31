@@ -19,7 +19,6 @@
                             <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                             <span>Dashboard</span>
                         </a>
-
                         <a href="{{ route('admin.users.index') }}"
                             class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                             <i data-lucide="users" class="w-4 h-4"></i>

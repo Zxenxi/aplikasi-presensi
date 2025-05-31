@@ -14,16 +14,7 @@ use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController
 use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
 use App\Http\Controllers\Admin\JadwalPiketController as AdminJadwalPiketController; // <-- TAMBAHKAN INI
 // ... (sisa kode routes dimulai di sini) ...
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Di sini Anda bisa mendaftarkan web routes untuk aplikasi Anda. Route ini
-| dimuat oleh RouteServiceProvider dan semuanya akan
-| ditugaskan ke grup middleware "web". Buat sesuatu yang hebat!
-|
-*/
+
 
 // --------------------------------------------------------------------------
 // Rute Publik & Redirect Awal
@@ -106,7 +97,7 @@ Route::middleware(['auth'])->group(function () {
     // --- Grup Rute Area Admin (Hanya Super Admin ---
     Route::prefix('admin') // Semua URL diawali /admin
         ->name('admin.') // Semua nama route diawali admin.
-        ->middleware('role:Super Admint') // Hanya role Admin/Piket
+        ->middleware('role:Super Admin') // Hanya role Admin/Piket
         ->group(function () {
 
             // Dashboard Admin
@@ -118,8 +109,8 @@ Route::middleware(['auth'])->group(function () {
             // Laporan (Admin & Piket bisa lihat & export)
             Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
             Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
-            Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf'); // Sesuaikan nama route PDF
-
+            Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf'); 
+            
             // Daftar Kelas (Admin & Piket bisa lihat)
             Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index');
 
@@ -136,8 +127,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
                 Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
                 Route::patch('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
-                Route::get('/classes/{kela}/show', [AdminKelasController::class, 'show'])->name('classes.show'); // <-- ROUTE BARU DETAIL KELASs
-// Di dalam grup admin...
+                Route::get('/classes/{kela}/show', [AdminKelasController::class, 'show'])->name('classes.show'); 
+                // Di dalam grup admin...
                 Route::post('/classes/{kela}/bulk-update-students', [AdminKelasController::class, 'bulkUpdateStudents'])->name('classes.bulkUpdateStudents');
                 // Application Settings
                 Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
@@ -150,14 +141,7 @@ Route::middleware(['auth'])->group(function () {
             // =============================================
             });
             // --- Akhir Grup Khusus Super Admin ---
-
         });
-    // --- Akhir Grup Rute Area Admin ---
-
+   
 });
-// --- Akhir Grup Rute Utama Otentikasi ---
-// --------------------------------------------------------------------------
-// Rute Otentikasi Bawaan Laravel (dari Breeze/Jetstream)
-// --------------------------------------------------------------------------
-// Pastikan file ini di-require untuk menangani login, logout, dll.
 require __DIR__.'/auth.php';

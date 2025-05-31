@@ -17,9 +17,6 @@
             @endif
         </div>
 
-        {{-- Pesan Sukses/Error --}}
-        {{-- @include('partials.common._alert') Atau tampilkan manual --}}
-
         {{-- Form Filter & Search --}}
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6">
             {{-- Gunakan method GET agar filter muncul di URL --}}
@@ -69,7 +66,6 @@
                 </div>
             </form>
         </div>
-
 
         {{-- Tabel Pengguna --}}
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
@@ -211,13 +207,4 @@
             @endif
         </div>
     </div>
-
-    {{-- Style --}}
-    <style>
-        /* ... (class form-label, form-input, form-select) ... */
-        /* ... (class status-badge & warnanya) ... */
-        /* ... (class action-button) ... */
-        /* ... (class btn-primary, btn-secondary) ... */
-        /* ... (class alert) ... */
-    </style>
 @endsection
