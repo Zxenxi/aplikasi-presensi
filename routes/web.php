@@ -48,7 +48,7 @@ Route::get('/', function () {
     }
 
     // Panggil method role pada $user
-    if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini sekarang
+    if ($user->isSuperAdmin() ) { // IDE seharusnya mengenali ini sekarang
         return redirect()->route('admin.dashboard');
     }
     if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini sekarang
@@ -76,7 +76,7 @@ Route::middleware(['auth'])->group(function () {
         }
 
         // Panggil method role pada $user
-        if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini
+        if ($user->isSuperAdmin() ) { // IDE seharusnya mengenali ini
              return redirect()->route('admin.dashboard');
         }
         if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini
@@ -103,10 +103,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/riwayat', [AttendanceController::class, 'index'])->name('history');
     });
 
-    // --- Grup Rute Area Admin (Hanya Super Admin & Petugas Piket) ---
+    // --- Grup Rute Area Admin (Hanya Super Admin ---
     Route::prefix('admin') // Semua URL diawali /admin
         ->name('admin.') // Semua nama route diawali admin.
-        ->middleware('role:Super Admin,Petugas Piket') // Hanya role Admin/Piket
+        ->middleware('role:Super Admint') // Hanya role Admin/Piket
         ->group(function () {
 
             // Dashboard Admin
@@ -133,7 +133,12 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
                 Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
                 Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
-
+                Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
+                Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
+                Route::patch('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+                Route::get('/classes/{kela}/show', [AdminKelasController::class, 'show'])->name('classes.show'); // <-- ROUTE BARU DETAIL KELASs
+// Di dalam grup admin...
+                Route::post('/classes/{kela}/bulk-update-students', [AdminKelasController::class, 'bulkUpdateStudents'])->name('classes.bulkUpdateStudents');
                 // Application Settings
                 Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
                 Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
@@ -143,10 +148,6 @@ Route::middleware(['auth'])->group(function () {
                  ->except(['show']) // Jika Anda tidak menggunakan halaman show individu
                  ->names('picket_schedules'); // Memberi nama route seperti admin.picket_schedules.index, .create, dll.
             // =============================================
-             Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
-            Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
-        
-            Route::patch('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
             });
             // --- Akhir Grup Khusus Super Admin ---
 

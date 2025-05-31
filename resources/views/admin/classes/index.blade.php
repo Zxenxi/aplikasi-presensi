@@ -9,16 +9,56 @@
                 <p class="text-sm text-gray-500 mt-1">Kelola data kelas di sekolah.</p>
             </div>
             @if (auth()->user()->isSuperAdmin())
-                <a href="{{ route('admin.classes.promotionForm') }}" class="text-sm text-indigo-600 hover:underline">
-                    Kenaikan Kelas
-                </a>
-                <button type="button" @click="openCreateClassModal()" {{-- Panggil fungsi Alpine --}}
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <i data-lucide="plus" class="w-4 h-4 mr-1.5 -ml-1"></i> Tambah Kelas
-                </button>
+                <div class="flex items-center space-x-2"> {{-- Wrapper untuk tombol --}}
+                    <button type="button" @click="openCreateClassModal()" {{-- Panggil fungsi Alpine --}}
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i data-lucide="plus" class="w-4 h-4 mr-1.5 -ml-1"></i> Tambah Kelas
+                    </button>
+                    <a href="{{ route('admin.classes.promotionForm') }}"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Kenaikan Kelas
+                    </a>
+                </div>
             @endif
         </div>
 
+        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6">
+            <form method="GET" action="{{ route('admin.classes.index') }}"
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label for="filter_tingkat" class="form-label">Filter Tingkat</label>
+                    <select name="tingkat" id="filter_tingkat" class="form-select">
+                        <option value="">Semua Tingkat</option>
+                        @foreach ($tingkatOptions as $tingkat)
+                            <option value="{{ $tingkat }}" {{ ($filterTingkat ?? '') == $tingkat ? 'selected' : '' }}>
+                                Tingkat {{ $tingkat }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="filter_wali_kelas_id" class="form-label">Filter Wali Kelas</label>
+                    <select name="wali_kelas_id" id="filter_wali_kelas_id" class="form-select">
+                        <option value="">Semua Wali Kelas</option>
+                        @foreach ($guru as $g)
+                            <option value="{{ $g->id }}" {{ ($filterWaliKelas ?? '') == $g->id ? 'selected' : '' }}>
+                                {{ $g->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sm:col-span-2 md:col-span-1 flex space-x-2">
+                    <button type="submit"
+                        class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Filter
+                    </button>
+                    <a href="{{ route('admin.classes.index') }}"
+                        class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Reset
+                    </a>
+                </div>
+            </form>
+        </div>
         {{-- Pesan Sukses/Error --}}
         @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -43,7 +83,6 @@
 
 
         {{-- TODO: Tambahkan filter kelas nanti --}}
-
         {{-- Tabel Kelas --}}
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
@@ -61,7 +100,13 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($kelas as $item)
                             <tr>
-                                <td class="text-sm font-medium text-gray-900">{{ $item->nama_kelas }}</td>
+                                <td class="text-sm font-medium text-gray-900">
+                                    <a href="{{ route('admin.classes.show', $item) }}"
+                                        class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                        {{ $item->nama_kelas }}
+                                    </a>
+                                </td>
+                                {{-- <td class="text-sm font-medium text-gray-900">{{ $item->nama_kelas }}</td> --}}
                                 <td class="text-sm text-gray-500 text-center">{{ $item->tingkat }}</td>
                                 <td class="text-sm text-gray-500">{{ $item->jurusan ?? '-' }}</td>
                                 <td class="text-sm text-gray-500">{{ $item->waliKelas->name ?? '-' }}</td>

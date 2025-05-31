@@ -8,32 +8,42 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\User; // Untuk ambil data guru
 use Illuminate\Support\Facades\Auth; // Import Auth
+use Illuminate\Support\Facades\Log;
 
 class KelasController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        /** @var \App\Models\User $user */ // <-- PHPDoc Hint
-        $user = Auth::user();
-
-        // Otorisasi: Super Admin & Petugas Piket bisa lihat
-        if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
-             abort(403, 'Akses Ditolak');
-        }
-
-        $kelas = Kelas::with(['waliKelas', 'students'])
-                      ->orderBy('tingkat')
-                      ->orderBy('nama_kelas')
-                      ->get();
-        // $guru = User::where('role', 'Guru')->orderBy('name')->get();
-        // Di KelasController::index()
-$guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->get();
-
-        return view('admin.classes.index', compact('kelas', 'guru'));
+// app/Http/Controllers/Admin/KelasController.php
+public function index(Request $request) // Tambahkan Request $request
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    // if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) { // Sesuaikan jika Petugas Piket dihapus
+    if (!$user->isSuperAdmin()) { // Jika hanya Super Admin
+         abort(403, 'Akses Ditolak');
     }
+
+    $filterTingkat = $request->input('tingkat');
+    $filterWaliKelas = $request->input('wali_kelas_id');
+
+    $query = Kelas::query()->with(['waliKelas', 'students']);
+
+    if ($filterTingkat) {
+        $query->where('tingkat', $filterTingkat);
+    }
+
+    if ($filterWaliKelas) {
+        $query->where('wali_kelas_id', $filterWaliKelas);
+    }
+
+    $kelas = $query->orderBy('tingkat')->orderBy('nama_kelas')->get();
+    $guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->get(); // Hanya guru aktif
+    $tingkatOptions = Kelas::select('tingkat')->distinct()->orderBy('tingkat')->pluck('tingkat'); // Ambil opsi tingkat
+
+    return view('admin.classes.index', compact('kelas', 'guru', 'tingkatOptions', 'filterTingkat', 'filterWaliKelas'));
+}
 
     /**
      * Store a newly created resource in storage.
@@ -196,6 +206,95 @@ $guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan saat proses kenaikan kelas: ' . $e->getMessage());
+        }
+    }
+
+public function show(Kelas $kela, Request $request)
+{
+    // ... (kode otorisasi) ...
+    $filterStatusSiswa = $request->input('status_siswa', '1');
+
+    $kela->load(['waliKelas', 'students' => function ($query) use ($filterStatusSiswa) {
+        $query->where('role', 'Siswa');
+        if ($filterStatusSiswa !== 'all') {
+            $query->where('is_active', (bool)$filterStatusSiswa);
+        }
+        $query->orderBy('name');
+    }]);
+
+    // Ambil semua kelas KECUALI kelas saat ini untuk opsi pindah kelas
+    $allKelas = Kelas::where('id', '!=', $kela->id)->orderBy('nama_kelas')->get();
+
+    return view('admin.classes.show', compact('kela', 'allKelas', 'filterStatusSiswa'));
+}
+ public function bulkUpdateStudents(Request $request, Kelas $kela)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $validated = $request->validate([
+            'bulk_action' => 'required|string|in:activate,deactivate,move_class',
+            'siswa_ids' => 'required|array',
+            'siswa_ids.*' => 'exists:users,id',
+            'target_kelas_id' => 'nullable|required_if:bulk_action,move_class|exists:kelas,id|different:'.$kela->id,
+        ],[
+            'bulk_action.required' => 'Aksi massal harus dipilih.',
+            'siswa_ids.required' => 'Tidak ada siswa yang dipilih.',
+            'target_kelas_id.required_if' => 'Kelas tujuan harus dipilih untuk aksi pindah kelas.',
+            'target_kelas_id.different' => 'Kelas tujuan tidak boleh sama dengan kelas asal.',
+        ]);
+
+        $siswaIds = $validated['siswa_ids'];
+        $action = $validated['bulk_action'];
+        $updatedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            $studentsToUpdate = User::whereIn('id', $siswaIds)
+                                     ->where('kelas_id', $kela->id)
+                                     ->where('role', 'Siswa')
+                                     ->get();
+
+            if($studentsToUpdate->isEmpty()){
+                DB::rollBack(); // Pastikan rollback jika tidak ada siswa yang valid
+                return back()->with('warning', 'Tidak ada siswa valid yang ditemukan untuk diproses dari kelas ini.');
+            }
+
+            foreach ($studentsToUpdate as $siswa) {
+                switch ($action) {
+                    case 'activate':
+                        $siswa->is_active = true;
+                        $siswa->save();
+                        $updatedCount++;
+                        break;
+                    case 'deactivate':
+                        if ($siswa->id === $currentUser->id) {
+                            continue 2; // <-- PERBAIKAN DI SINI: Lanjutkan ke iterasi foreach berikutnya
+                        }
+                        $siswa->is_active = false;
+                        $siswa->save();
+                        $updatedCount++;
+                        break;
+                    case 'move_class':
+                        $siswa->kelas_id = $validated['target_kelas_id'];
+                        // Pertimbangkan untuk mengaktifkan siswa jika dipindahkan ke kelas baru, jika relevan
+                        // $siswa->is_active = true;
+                        $siswa->save();
+                        $updatedCount++;
+                        break;
+                }
+            }
+            DB::commit();
+            // Ganti _ dengan spasi dan buat huruf pertama kapital untuk pesan yang lebih baik
+            $actionFriendlyName = ucfirst(str_replace('_', ' ', $action));
+            return back()->with('success', "$updatedCount siswa berhasil diproses dengan aksi: " . $actionFriendlyName . ".");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Kesalahan saat aksi massal siswa: ' . $e->getMessage() . ' - File: ' . $e->getFile() . ' - Baris: ' . $e->getLine());
+            return back()->with('error', 'Terjadi kesalahan saat memproses aksi massal. Silakan coba lagi.');
         }
     }
 }
