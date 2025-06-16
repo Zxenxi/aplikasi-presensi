@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ config('app.name', 'Laravel') }} - Admin</title> {{-- Judul Dinamis --}}
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- Load CSS & JS via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 

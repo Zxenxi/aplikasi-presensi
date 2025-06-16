@@ -22,7 +22,9 @@ class AttendanceSeeder extends Seeder
         Attendance::truncate();
 
         $faker = Faker::create('id_ID');
-        $users = User::whereIn('role', ['Guru', 'Siswa'])->get(); // Ambil Guru & Siswa saja
+        // $users = User::whereIn('role', ['Guru', 'Siswa'])->get(); // Ambil Guru & Siswa saja
+        // Di AttendanceSeeder.php
+$users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get();
         $settings = Setting::first();
 
         if (!$settings) {

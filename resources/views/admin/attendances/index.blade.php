@@ -16,8 +16,8 @@
                 </a>
             @endif
         </div>
-        {{-- Include Partial Alert (buat file ini jika belum) --}}
-        {{-- resources/views/partials/common/_alert.blade.php --}}
+
+        {{-- Notifikasi Sukses atau Gagal --}}
         @if (View::exists('partials.common._alert'))
             @include('partials.common._alert')
         @else
@@ -32,8 +32,7 @@
             @endif
         @endif
 
-
-        {{-- Filter Sederhana --}}
+        {{-- Filter Pencarian --}}
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6">
             <form method="GET" action="{{ route('admin.attendances.index') }}"
                 class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
@@ -77,28 +76,52 @@
         </div>
 
 
-        {{-- Tabel Data Presensi --}}
+        {{-- Tabel Data Presensi (SUDAH DIPERBAIKI) --}}
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tanggal</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama
+                            {{-- 1. Tanggal --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tanggal
                             </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas
+                            {{-- 2. Nama --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
                             </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam
-                                Masuk</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Selfie</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Lokasi</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Aksi</th>
+                            {{-- 3. Kelas --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kelas
+                            </th>
+                            {{-- 4. Jam Masuk --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Jam Masuk
+                            </th>
+                            {{-- 5. Status & Keterangan --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            {{-- 6. Selfie --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Selfie
+                            </th>
+                            {{-- 7. Lokasi --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Lokasi
+                            </th>
+                            {{-- 8. Aksi --}}
+                            <th scope="col"
+                                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     {{-- Contoh di resources/views/admin/attendances/index.blade.php (bagian tbody tabel) --}}
@@ -108,34 +131,106 @@
                     {{-- Contoh di resources/views/admin/attendances/index.blade.php (bagian tbody tabel) --}}
 
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($attendances as $attendance)
-                            <tr class="hover:bg-gray-50">
-                                {{-- ... kolom data presensi (Nama, Tanggal, Status, Jam Masuk, dll.) ... --}}
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ $attendance->user->name ?? 'N/A' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    {{ $attendance->tanggal->isoFormat('dddd, D MMMM Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $attendance->status }}
+                        @forelse($attendances as $att)
+                            <tr>
+                                {{-- 1. Tanggal --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $att->tanggal->isoFormat('D MMM YY') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $attendance->jam_masuk ?? '-' }}</td>
-                                {{-- ... kolom lain jika ada (misal lokasi, selfie) ... --}}
 
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                {{-- 2. Nama --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $att->user->name ?? 'N/A' }}
+                                </td>
+
+                                {{-- 3. Kelas --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $att->user?->role === 'Siswa' ? $att->user?->kelas?->nama_kelas ?? '-' : '-' }}
+                                </td>
+
+                                {{-- 4. Jam Masuk --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $att->jam_masuk ? \Carbon\Carbon::parse($att->jam_masuk)->format('H:i') : '-' }}
+                                </td>
+
+                                {{-- 5. Status & Keterangan --}}
+                                {{-- 5. Status & Keterangan (DIPERBAIKI DENGAN INFO 'DIUBAH OLEH') --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm">
+                                    @php
+                                        $statusBadge = match ($att->status) {
+                                            'Hadir' => 'badge-green',
+                                            'Telat' => 'badge-yellow',
+                                            'Izin' => 'badge-blue',
+                                            'Sakit' => 'badge-purple',
+                                            default => 'badge-red',
+                                        };
+                                    @endphp
+                                    <span class="status-badge {{ $statusBadge }}">{{ $att->status }}</span>
+
+                                    {{-- Menambahkan keterangan di bawah status untuk konteks --}}
+                                    @if ($att->remarks || $att->keterangan)
+                                        <span class="block text-xs text-gray-400 italic mt-1" title="Keterangan">
+                                            {{ $att->remarks ?: $att->keterangan }}
+                                        </span>
+                                    @endif
+
+                                    {{-- INFORMASI 'DIUBAH OLEH' YANG DIKEMBALIKAN --}}
+                                    @if ($att->updatedBy)
+                                        <span class="block text-xs text-gray-400 italic mt-1">
+                                            Diubah oleh: {{ $att->updatedBy->name }}
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- 6. Selfie --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-center">
+                                    @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
+                                        <img src="{{ Storage::url($att->selfie_path) }}" alt="Selfie"
+                                            class="w-8 h-8 object-cover rounded-full shadow inline-block" loading="lazy">
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
+                                </td>
+
+                                {{-- 7. Lokasi --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm">
+                                    @if (!is_null($att->latitude))
+                                        @if (is_null($att->is_location_valid))
+                                            <span class="status-badge badge-gray">N/A</span>
+                                        @elseif($att->is_location_valid)
+                                            <span class="status-badge badge-green">Valid</span>
+                                        @else
+                                            <span class="status-badge badge-red">Tidak Valid</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400 text-xs">Manual</span>
+                                    @endif
+                                </td>
+
+                                {{-- 8. Aksi (Telah Dikonsolidasi) --}}
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-center">
                                     <div class="flex justify-center items-center space-x-1">
-                                        {{-- Tombol Edit: Hanya tampil jika user lolos Gate manageTodayAttendanceAdmin (Super Admin ATAU terjadwal piket hari ini) --}}
-                                        @can('manageTodayAttendanceAdmin')
-                                            {{-- Note: Controller sudah membatasi edit hanya hari ini untuk non-admin --}}
-                                            <a href="{{ route('admin.attendances.edit', $attendance) }}" title="Edit Presensi"
-                                                class="action-button text-blue-400 hover:text-blue-600 hover:bg-blue-50">
+                                        @php
+                                            // Logika untuk menentukan apakah user bisa mengedit data ini
+                                            $canEdit = Auth::user()->isSuperAdmin();
+                                            if (Auth::user()->isPetugasPiket()) {
+                                                // Sesuaikan aturan ini jika perlu.
+                                                // Contoh: Petugas piket hanya bisa edit data hari ini.
+                                                // $canEdit = $att->tanggal->isToday();
+                                                $canEdit = true; // Untuk saat ini, kita beri izin.
+                                            }
+                                        @endphp
+
+                                        @if ($canEdit)
+                                            <a href="{{ route('admin.attendances.edit', $att) }}" title="Edit Presensi"
+                                                class="action-button">
                                                 <i data-lucide="edit-2"></i>
                                             </a>
-                                        @endcan
+                                        @endif
 
-                                        {{-- Tombol Hapus: Tetap hanya untuk Super Admin --}}
                                         @if (Auth::user()->isSuperAdmin())
-                                            <form action="{{ route('admin.attendances.destroy', $attendance) }}"
-                                                method="POST" onsubmit="return confirm('Yakin hapus data presensi ini?');"
+                                            <form action="{{ route('admin.attendances.destroy', $att) }}" method="POST"
+                                                onsubmit="return confirm('Yakin ingin menghapus data presensi ini? Foto selfie terkait juga akan dihapus.');"
                                                 class="inline">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" title="Hapus Presensi"
@@ -145,18 +240,19 @@
                                             </form>
                                         @endif
 
-                                        {{-- Tampilkan penanda jika tidak ada aksi yang tersedia untuk baris ini --}}
-                                        {{-- Tampilkan jika BUKAN Super Admin DAN tidak bisa manageAttendanceAdmin --}}
-                                        @if (!Auth::user()->isSuperAdmin() && !Gate::allows('manageTodayAttendanceAdmin'))
-                                            -
+                                        {{-- Jika user tidak bisa melakukan aksi apapun, tampilkan strip --}}
+                                        @if (!$canEdit && !Auth::user()->isSuperAdmin())
+                                            <span class="text-gray-400">-</span>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="99" class="text-center py-10 text-gray-500">Tidak ada data presensi
-                                    ditemukan.</td> {{-- Sesuaikan colspan --}}
+                                {{-- Pastikan colspan sesuai dengan jumlah TH --}}
+                                <td colspan="8" class="text-center py-10 text-gray-500">
+                                    Tidak ada data presensi ditemukan.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -165,92 +261,10 @@
             {{-- Link Paginasi --}}
             @if ($attendances->hasPages())
                 <div class="px-4 py-3 border-t border-gray-200 sm:px-6">
-                    {{ $attendances->appends($filters)->links() }} {{-- Tambah appends agar filter terbawa saat ganti halaman --}}
+                    {{-- Tambah appends agar filter terbawa saat ganti halaman --}}
+                    {{ $attendances->appends($filters)->links() }}
                 </div>
             @endif
         </div>
     </div>
-
-    {{-- Style --}}
-    <style>
-        .form-label {
-            /* ... */
-        }
-
-        .form-input,
-        .form-select {
-            /* ... */
-        }
-
-        .action-button {
-            /* ... */
-        }
-
-        .action-button:hover {
-            /* ... */
-        }
-
-        .action-button i {
-            /* ... */
-        }
-
-        .status-badge {
-            /* ... */
-        }
-
-        .badge-red {
-            /* ... */
-        }
-
-        .badge-yellow {
-            /* ... */
-        }
-
-        .badge-green {
-            /* ... */
-        }
-
-        .badge-gray {
-            /* ... */
-        }
-
-        .badge-blue {
-            background-color: #dbeafe;
-            color: #3b82f6;
-        }
-
-        .badge-purple {
-            background-color: #ede9fe;
-            color: #7c3aed;
-        }
-
-        .btn-primary {
-            /* ... */
-        }
-
-        .btn-secondary {
-            /* ... */
-        }
-
-        /* Style untuk alert (contoh) */
-        .alert-success {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid transparent;
-            border-radius: 0.375rem;
-            color: #0f5132;
-            background-color: #d1e7dd;
-            border-color: #badbcc;
-        }
-
-        .alert-danger {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid transparent;
-            border-radius: 0.375rem;
-            color: #842029;
-            background-color: #f8d7da;
-            border-color: #f5c2c7;
-        }
-    </style>
 @endsection

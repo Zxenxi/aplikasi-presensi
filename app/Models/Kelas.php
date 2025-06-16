@@ -11,6 +11,9 @@ class Kelas extends Model {
     protected $table = 'kelas'; // Eksplisit nama tabel
     protected $fillable = ['nama_kelas', 'tingkat', 'jurusan', 'wali_kelas_id'];
 
-    public function students() { return $this->hasMany(User::class); }
+    // public function students() { return $this->hasMany(User::class); }
+    public function students() {
+    return $this->hasMany(User::class, 'kelas_id'); // Pastikan foreign key 'kelas_id' benar
+}
     public function waliKelas() { return $this->belongsTo(User::class, 'wali_kelas_id'); }
 }

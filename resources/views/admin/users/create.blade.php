@@ -60,8 +60,6 @@
                                 class="form-select @error('role') border-red-500 @enderror">
                                 <option value="Siswa" {{ old('role') == 'Siswa' ? 'selected' : '' }}>Siswa</option>
                                 <option value="Guru" {{ old('role') == 'Guru' ? 'selected' : '' }}>Guru</option>
-                                <option value="Petugas Piket" {{ old('role') == 'Petugas Piket' ? 'selected' : '' }}>
-                                    Petugas Piket</option>
                                 <option value="Super Admin" {{ old('role') == 'Super Admin' ? 'selected' : '' }}>Super
                                     Admin</option>
                             </select>
@@ -87,7 +85,23 @@
                             @enderror
                         </div>
                     </div>
+                    {{-- ... field lainnya ... --}}
 
+                    {{-- Status Aktif --}}
+                    <div class="mt-4">
+                        <label for="is_active" class="inline-flex items-center">
+                            <input id="is_active" type="checkbox"
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
+                            <span class="ms-2 text-sm text-gray-600">Akun Aktif</span>
+                        </label>
+                        @error('is_active')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Tombol Aksi --}}
+                    {{-- ... --}}
 
                     {{-- Tombol Aksi --}}
                     <div class="flex justify-end space-x-3 pt-4">

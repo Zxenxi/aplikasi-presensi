@@ -68,6 +68,11 @@
                     </select>
                 </div>
 
+                <div class="col-span-6 sm:col-span-3"> {{-- Sesuaikan grid span jika perlu --}}
+                    <label for="search_user_name" class="form-label">Nama Pengguna</label>
+                    <input type="text" id="search_user_name" name="search_user_name"
+                        value="{{ $filters['search_user_name'] ?? '' }}" class="form-input" placeholder="Cari nama...">
+                </div>
 
                 {{-- Tombol Submit --}}
                 <div class="col-span-12 sm:col-span-2 md:col-span-1 ">
@@ -148,6 +153,18 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($results as $index => $att)
                                 <tr>
+
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $att->tanggal->isoFormat('D MMM YYYY') }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $att->user->name ?? 'N/A' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $att->user->role ?? 'N/A' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $att->user->role === 'Siswa' ? $att->user->kelas->nama_kelas ?? '-' : '-' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        {{ \Carbon\Carbon::parse($att->jam_masuk)->format('H:i') }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm">
                                         @php
                                             // Definisikan $statusBadge di sini SEBELUM digunakan
@@ -171,25 +188,6 @@
                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">
                                             {{ $att->status }}
                                         </span>
-                                    </td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $att->tanggal->isoFormat('D MMM YYYY') }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $att->user->name ?? 'N/A' }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $att->user->role ?? 'N/A' }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $att->user->role === 'Siswa' ? $att->user->kelas->nama_kelas ?? '-' : '-' }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($att->jam_masuk)->format('H:i') }}</td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-sm">
-                                        @php
-                                            /* ... (Logika Badge Status sama seperti history) ... */
-                                        @endphp
-                                        <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">
-                                            {{ $att->status }} </span>
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
                                         @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))

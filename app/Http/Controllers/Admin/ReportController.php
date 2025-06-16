@@ -18,72 +18,60 @@ class ReportController extends Controller
     /**
      * Menampilkan halaman form filter laporan dan hasil laporan jika ada filter.
      */
-    public function index(Request $request) // Terima Request untuk ambil filter
-    {
-        // Otorisasi: Super Admin & Petugas Piket bisa akses
-          /** @var \App\Models\User $user */ // <-- PHPDoc Hint
-          $user = Auth::user();
+ // Di dalam Admin\ReportController@index
+public function index(Request $request)
+{
+    // ... (otorisasi) ...
+    $kelas = Kelas::orderBy('nama_kelas')->get();
+    $query = Attendance::query()->with(['user' => function ($query) {
+        $query->with('kelas');
+    }]);
 
-          // Otorisasi: Super Admin & Petugas Piket bisa akses
-          if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) {
-              abort(403, 'Akses Ditolak');
-          }
+    $filters = $request->only(['tanggal_mulai', 'tanggal_selesai', 'tipe_user', 'kelas_id', 'status_presensi', 'search_user_name']); // <-- Tambah search_user_name
+    $results = null;
 
-        // Ambil data untuk filter dropdown
-        $kelas = Kelas::orderBy('nama_kelas')->get();
+    if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
+        $request->validate([
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'tipe_user' => 'nullable|in:Guru,Siswa',
+            'kelas_id' => 'nullable|exists:kelas,id',
+            'status_presensi' => 'nullable|in:Hadir,Telat,Izin,Sakit,Absen',
+            'search_user_name' => 'nullable|string|max:255', // <-- Tambah validasi
+        ]);
 
-        // Query dasar untuk presensi, termasuk data user dan kelas user
-        $query = Attendance::query()->with(['user' => function ($query) {
-            $query->with('kelas'); // Eager load kelas milik user
-        }]);
+        $query->whereBetween('tanggal', [$request->tanggal_mulai, $request->tanggal_selesai]);
 
-        // Proses Filter jika ada input dari request GET
-        $filters = $request->only(['tanggal_mulai', 'tanggal_selesai', 'tipe_user', 'kelas_id', 'status_presensi']);
-        $results = null; // Inisialisasi hasil
-
-        // Hanya proses query jika ada filter tanggal
-        if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
-            // Validasi tanggal dasar
-            $request->validate([
-                'tanggal_mulai' => 'required|date',
-                'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-                'tipe_user' => 'nullable|in:Guru,Siswa',
-                'kelas_id' => 'nullable|exists:kelas,id',
-                'status_presensi' => 'nullable|in:Hadir,Telat,Izin,Sakit,Absen', // Tambah filter status
-            ]);
-
-            $query->whereBetween('tanggal', [$request->tanggal_mulai, $request->tanggal_selesai]);
-
-            // Filter berdasarkan Tipe User (Role)
-            if ($request->filled('tipe_user')) {
-                $query->whereHas('user', function ($q) use ($request) {
-                    $q->where('role', $request->tipe_user);
-                });
-            }
-
-            // Filter berdasarkan Kelas (hanya jika tipe user adalah Siswa)
-            if ($request->tipe_user === 'Siswa' && $request->filled('kelas_id')) {
-                 $query->whereHas('user', function ($q) use ($request) {
-                    $q->where('kelas_id', $request->kelas_id);
-                });
-            }
-
-             // Filter berdasarkan Status Presensi
-            if ($request->filled('status_presensi')) {
-                $query->where('status', $request->status_presensi);
-            }
-
-
-            // Ambil hasil query, urutkan
-            $results = $query->orderBy('tanggal', 'asc')
-                            ->orderBy('jam_masuk', 'asc')
-                            ->get(); // Gunakan get() untuk laporan, atau paginate() jika sangat banyak
+        if ($request->filled('tipe_user')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('role', $request->tipe_user);
+            });
         }
 
+        if ($request->tipe_user === 'Siswa' && $request->filled('kelas_id')) {
+             $query->whereHas('user', function ($q) use ($request) {
+                $q->where('kelas_id', $request->kelas_id);
+            });
+        }
 
-        // Kirim data kelas, hasil query (jika ada), dan input filter ke view
-        return view('admin.reports.index', compact('kelas', 'results', 'filters'));
+        if ($request->filled('status_presensi')) {
+            $query->where('status', $request->status_presensi);
+        }
+
+        // Filter berdasarkan nama pengguna
+        if ($request->filled('search_user_name')) { // <-- Tambah kondisi filter nama
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search_user_name . '%');
+            });
+        }
+
+        $results = $query->orderBy('tanggal', 'asc')
+                        ->orderBy('jam_masuk', 'asc')
+                        ->get();
     }
+
+    return view('admin.reports.index', compact('kelas', 'results', 'filters'));
+}
 
     // Anda bisa menambahkan method lain di sini, misal untuk export ke Excel/PDF
     // public function export(Request $request) { ... }

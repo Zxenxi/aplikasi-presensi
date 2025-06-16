@@ -3,6 +3,7 @@
 // app/Models/User.php
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Models\Kelas;
 use App\Models\Attendance;
 use Illuminate\Notifications\Notifiable;
@@ -20,11 +21,16 @@ class User extends Authenticatable
         'password',
         'role', // <-- Tambahkan role
         'kelas_id', // <-- Tambahkan kelas_id
+        'is_active', 
     ];
 
     protected $hidden = [ 'password', 'remember_token', ];
-    protected $casts = [ 'email_verified_at' => 'datetime', ];
 
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed', // Laravel 10+ biasanya sudah default, tapi pastikan
+        'is_active' => 'boolean', // <-- TAMBAHKAN INI
+    ];
     // Relasi ke Presensi
     public function attendances() {
         return $this->hasMany(Attendance::class);
@@ -51,13 +57,28 @@ class User extends Authenticatable
      *
      * @return bool
      */
-    public function isPetugasPiket()
+ public function isPetugasPiket(): bool 
     {
-        return $this->role === 'Petugas Piket';
+        // User adalah 'Guru' DAN punya jadwal piket hari ini.
+        if ($this->role === 'Guru') {
+            // Dapatkan hari ini dalam format angka (1 untuk Senin, 2 untuk Selasa, dst.)
+            $hariIni = Carbon::now(config('app.timezone'))->dayOfWeekIso;
+
+            // Cek apakah ada jadwal piket untuk guru ini pada hari ini di database.
+            return JadwalPiket::where('user_id', $this->id)
+                               ->where('hari_ke', $hariIni)
+                               ->exists();
+        }
+
+        // Jika bukan keduanya, maka bukan petugas piket.
+        return false;
     }
     // public function isSuperAdmin(): bool { return $this->role === 'Super Admin'; }
-    // public function isPetugasPiket(): bool { return $this->role === 'Petugas Piket'; }
     public function isGuru(): bool { return $this->role === 'Guru'; }
     public function isSiswa(): bool { return $this->role === 'Siswa'; }
     
+    public function jadwalPiket()
+    {
+        return $this->hasMany(JadwalPiket::class, 'user_id');
+    }
 }

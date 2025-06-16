@@ -13,44 +13,73 @@
             {{-- dekstop View --}}
             <div class="hidden md:flex md:absolute md:inset-y-0 md:left-1/2 md:transform md:-translate-x-1/2">
                 @auth
-                    @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="{{ route('admin.users.index') }}"
-                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                            <i data-lucide="users" class="w-5 h-5"></i>
-                            <span class="font-medium">Pengguna</span>
-                        </a>
-                        <a href="{{ route('admin.classes.index') }}"
-                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                            <i data-lucide="building" class="w-5 h-5"></i>
-                            <span class="font-medium">Kelas</span>
-                        </a>
-                        <a href="{{ route('admin.reports.index') }}"
-                            class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                            <span class="font-medium">Laporan</span>
-                        </a>
+                    {{-- Ini adalah blok utama untuk menu Admin/Piket/Guru/Siswa --}}
+                    {{-- Pastikan ini tetap ada untuk otorisasi umum --}}
+                    @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket() || Auth::user()->isGuru() || Auth::user()->isSiswa())
+                        {{-- Dashboard (terlihat untuk Admin dan Petugas Piket) --}}
+                        @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        @endif
+
+                        {{-- Pengguna (HANYA untuk Super Admin) --}}
                         @if (Auth::user()->isSuperAdmin())
-                            <a href="{{ route('admin.picket-schedules.index') }}" title="Jadwal Piket"
-                                class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.picket-schedules*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('admin.users.index') }}"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                                <span class="font-medium">Pengguna</span>
+                            </a>
+                        @endif
+
+                        {{-- Kelas (HANYA untuk Super Admin) --}}
+                        @if (Auth::user()->isSuperAdmin())
+                            <a href="{{ route('admin.classes.index') }}"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i data-lucide="building" class="w-5 h-5"></i>
+                                <span class="font-medium">Kelas</span>
+                            </a>
+                        @endif
+
+                        {{-- Laporan (terlihat untuk Admin dan Petugas Piket) --}}
+                        @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                            <a href="{{ route('admin.reports.index') }}"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                                <span class="font-medium">Laporan</span>
+                            </a>
+                        @endif
+
+                        {{-- Jadwal Piket (Hanya untuk Super Admin) --}}
+                        @if (Auth::user()->isSuperAdmin())
+                            <a href="{{ route('admin.picket_schedules.index') }}" title="Jadwal Piket"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.picket_schedules*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                                 <i data-lucide="calendar-days" class="w-5 h-5"></i><span>Jadwal Piket</span>
                             </a>
                         @endif
-                        {{-- Link Pengaturan hanya untuk Super Admin --}}
-                    @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
-                        {{-- === Menu untuk Guru & Siswa === --}}
-                        <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
-                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md font-medium {{ request()->routeIs('attendance.create') ? 'active' : '' }}">
-                            <i data-lucide="camera" class="w-5 h-5"></i><span>Presensi</span>
-                        </a>
-                        <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
-                            class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md font-medium {{ request()->routeIs('attendance.history') ? 'active' : '' }}">
-                            <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
-                        </a>
+
+                        {{-- Presensi (terlihat untuk Guru & Siswa, serta Admin) --}}
+                        {{-- Presensi Manual (untuk Admin & Petugas Piket) --}}
+                        @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                            <a href="{{ route('admin.attendances.index') }}" title="Manajemen Presensi Manual"
+                                class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.attendances*') ? 'active' : '' }}">
+                                <i data-lucide="calendar-check" class="w-4 h-4"></i><span>Kelola Presensi</span>
+                            </a>
+                        @endif
+
+                        {{-- Presensi Diri (untuk Guru & Siswa) --}}
+                        @if (Auth::user()->isGuru() || Auth::user()->isSiswa())
+                            <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
+                                class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md font-medium {{ request()->routeIs('attendance.create') ? 'active' : '' }}">
+                                <i data-lucide="camera" class="w-5 h-5"></i><span>Presensi</span>
+                            </a>
+                            <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
+                                class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md font-medium {{ request()->routeIs('attendance.history') ? 'active' : '' }}">
+                                <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
+                            </a>
+                        @endif
                     @endif
                 @endauth
             </div>
@@ -63,9 +92,8 @@
                             <span class="sr-only">Buka menu user</span>
                             <img class="h-8 w-8 rounded-full object-cover ring-1 ring-gray-300"
                                 src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random&color=fff&size=128"
-                                {{-- Avatar dinamis berdasarkan nama --}} alt="Avatar Pengguna"
+                                alt="Avatar Pengguna"
                                 onerror="this.onerror=null; this.src='https://placehold.co/100x100/cccccc/ffffff?text=Err';" />
-                            {{-- Menampilkan nama user yang login --}}
                             <span class="hidden md:block ml-2 text-sm font-medium text-gray-900 truncate max-w-[150px]">
                                 {{ Auth::user()->name }}
                             </span>
@@ -76,13 +104,13 @@
                             class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button"
                             tabindex="-1">
-                            <a href="{{ route('profile.edit') }}" {{-- Link ke profil --}}
+                            <a href="{{ route('profile.edit') }}"
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem" tabindex="-1"><i data-lucide="user-circle"
                                     class="w-4 h-4 mr-2"></i>Profil Anda</a>
 
                             @if (Auth::user()->isSuperAdmin())
-                                {{-- Hanya Super Admin --}}
+                                {{-- Pengaturan (HANYA untuk Super Admin) --}}
                                 <a href="{{ route('admin.settings.edit') }}"
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.settings.edit') ? 'active' : '' }}">
                                     <i data-lucide="settings" class="w-4 h-4 mr-2"></i><span>Pengaturan</span>
@@ -113,59 +141,83 @@
                 </button>
             </div>
         </div>
-        {{-- end dekstop view  --}}
     </div>
     {{-- mobile view  --}}
     <div x-show="isMobileMenuOpen" x-cloak class="sm:hidden border-t border-gray-200" id="mobile-menu" x-transition>
         <div class="px-2 pt-2 pb-3 space-y-1">
             @auth
+                {{-- Dashboard (terlihat untuk Admin dan Petugas Piket) --}}
                 @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                     <a href="{{ route('admin.dashboard') }}"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                         <span>Dashboard</span>
                     </a>
+                @endif
+
+                {{-- Pengguna (HANYA untuk Super Admin) --}}
+                @if (Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.users.index') }}"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="users" class="w-5 h-5"></i>
                         <span>Pengguna</span>
                     </a>
+                @endif
+
+                {{-- Kelas (HANYA untuk Super Admin) --}}
+                @if (Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.classes.index') }}"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.classes.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="building" class="w-5 h-5"></i>
                         <span>Kelas</span>
                     </a>
+                @endif
+
+                {{-- Laporan (terlihat untuk Admin dan Petugas Piket) --}}
+                @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                     <a href="{{ route('admin.reports.index') }}"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                         <span>Laporan</span>
                     </a>
-                @elseif(Auth::user()->isGuru() || Auth::user()->isSiswa())
-                    {{-- === Menu untuk Guru & Siswa === --}}
+                @endif
+
+                {{-- Presensi Manual (untuk Admin & Petugas Piket) --}}
+                @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
+                    <a href="{{ route('admin.attendances.index') }}" title="Manajemen Presensi Manual"
+                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.attendances*') ? 'active' : '' }}">
+                        <i data-lucide="calendar-check" class="w-4 h-4"></i><span>Kelola Presensi</span>
+                    </a>
+                @endif
+
+                {{-- Jadwal Piket (Hanya untuk Super Admin) --}}
+                @if (Auth::user()->isSuperAdmin())
+                    <a href="{{ route('admin.picket_schedules.index') }}" title="Jadwal Piket"
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.picket-schedules*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="calendar-days" class="w-5 h-5"></i><span>Jadwal Piket</span>
+                    </a>
+                @endif
+
+                {{-- Presensi Diri (untuk Guru & Siswa) --}}
+                @if (Auth::user()->isGuru() || Auth::user()->isSiswa())
                     <a href="{{ route('attendance.create') }}" title="Lakukan Presensi"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.create*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.create*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="camera" class="w-5 h-5"></i><span>Presensi</span>
                     </a>
                     <a href="{{ route('attendance.history') }}" title="Riwayat Presensi Anda"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.history*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('attendance.history*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
-                    </a>
-                @endif
-                @if (Auth::user()->isSuperAdmin())
-                    <a href="{{ route('admin.picket-schedules.index') }}" title="Jadwal Piket"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.picket-schedules*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="calendar-days" class="w-5 h-5"></i><span>Jadwal Piket</span>
                     </a>
                 @endif
             @endauth
             <div class="border-t border-gray-100 pt-3 mt-2">
-                <a href="#"
-                    class="flex items-center space-x-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900  px-3 py-2 rounded-md text-base font-medium"><i
+                <a href="{{ route('profile.edit') }}"
+                    class="flex items-center space-x-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium"><i
                         data-lucide="user-circle" class="w-5 h-5"></i><span>Profil Anda</span></a>
-                {{-- Link Pengaturan hanya untuk Super Admin --}}
+                {{-- Pengaturan (HANYA untuk Super Admin) --}}
                 @if (Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.settings.edit') }}" title="Pengaturan Aplikasi"
-                        class="flex items-center space-x-2  px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.settings*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.settings*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="settings" class="w-5 h-5"></i>
                         <span>Pengaturan</span>
                     </a>

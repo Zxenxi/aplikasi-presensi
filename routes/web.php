@@ -2,20 +2,25 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AttendanceController; // User Attendance
-// Controller Admin
-use App\Http\Controllers\Admin\PicketScheduleController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
+// Controller Admin
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // Admin Attendance
+use Illuminate\Support\Facades\Auth; // <-- PASTIKAN INI ADA & TIDAK DI-COMMENT
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use Illuminate\Http\Request; // <-- Tambahkan ini jika ingin pakai $request->user()
+use App\Http\Controllers\Admin\JadwalPiketController as AdminJadwalPiketController; // <-- TAMBAHKAN INI
+// ... (sisa kode routes dimulai di sini) ...
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 
-// ... (kode awal, redirect home, route dashboard default, route profile) ...
+// --------------------------------------------------------------------------
+// Rute Publik & Redirect Awal
+// --------------------------------------------------------------------------
+
+// Rute halaman utama ('/')
 // Rute halaman utama ('/')
 Route::get('/', function () {
     // Gunakan Auth::check()
@@ -34,7 +39,7 @@ Route::get('/', function () {
     }
 
     // Panggil method role pada $user
-    if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini sekarang
+    if ($user->isSuperAdmin() ) { // IDE seharusnya mengenali ini sekarang
         return redirect()->route('admin.dashboard');
     }
     if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini sekarang
@@ -61,7 +66,7 @@ Route::get('/', function () {
         }
 
         // Panggil method role pada $user
-        if ($user->isSuperAdmin() || $user->isPetugasPiket()) { // IDE seharusnya mengenali ini
+        if ($user->isSuperAdmin() ) { // IDE seharusnya mengenali ini
              return redirect()->route('admin.dashboard');
         }
         if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini
@@ -97,35 +102,26 @@ Route::prefix('presensi')
         Route::get('/riwayat', [AttendanceController::class, 'index'])->name('history');
 });
 
-// --- Grup Rute Area Admin ---
-// Middleware role statis di sini akan membatasi akses ke SELURUH KONTROLLER di dalam grup ini
-// hanya untuk user dengan role Super Admin atau Petugas Piket statis.
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware(['auth', 'role:Super Admin,Petugas Piket']) // <-- MIDDLEWARE AUTH & ROLE STATIS DI TINGKAT GRUP
-    ->group(function () {
+    // --- Grup Rute Area Admin (Hanya Super Admin ---
+    Route::prefix('admin') // Semua URL diawali /admin
+        ->name('admin.') // Semua nama route diawali admin.
+        ->middleware('role:Super Admin') // Hanya role Admin/Piket
+        ->group(function () {
 
         // Dashboard Admin (Middleware grup berlaku)
         // Otorisasi tambahan BISA di controller jika ada nuansa lain
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // --- Route untuk Manajemen Presensi Manual (Admin) ---
-        // Middleware grup 'role' berlaku di sini.
-        // Kontrol akses spesifik (index, edit, update) dilakukan DI DALAM AdminAttendanceController
-        // menggunakan Gate dinamis yang memeriksa jadwal piket hari ini.
-        // create, store, destroy tetap hanya untuk Super Admin via cek di controller.
-        Route::resource('/attendances', AdminAttendanceController::class)->except(['show']); // <-- Biarkan TANPA middleware 'can' atau 'role' tambahan di sini
+            // Manajemen Presensi Manual (Admin & Piket bisa lihat index, CRUD hanya Super Admin via Controller)
+            Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
 
-        // Manajemen Jadwal Piket (Middleware grup berlaku. Otorisasi Super Admin di controller)
-         Route::resource('/picket-schedules', PicketScheduleController::class)->except(['show']);
-
-        // Laporan (Middleware grup berlaku. Otorisasi di controller berdasarkan Super Admin / Petugas Piket statis)
-        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
-        Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf');
-
-        // Daftar Kelas (Middleware grup berlaku. Otorisasi di controller berdasarkan Super Admin / Petugas Piket statis)
-        Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index');
+            // Laporan (Admin & Piket bisa lihat & export)
+            Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+            Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
+            Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export.pdf'); 
+            
+            // Daftar Kelas (Admin & Piket bisa lihat)
+            Route::get('/classes', [AdminKelasController::class, 'index'])->name('classes.index');
 
         // --- Grup Rute Khusus Super Admin ---
         // Middleware ini akan membatasi lebih lanjut DI DALAM grup /admin
@@ -134,19 +130,28 @@ Route::prefix('admin')
              // User Management (Middleware grup berlaku. Otorisasi Super Admin di controller)
              Route::resource('/users', AdminUserController::class);
 
-             // Class Management (CRUD Actions) (Middleware grup berlaku. Otorisasi Super Admin di controller)
-             Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
-             Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
-             Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
+                // Class Management (CRUD Actions)
+                Route::post('/classes', [AdminKelasController::class, 'store'])->name('classes.store');
+                Route::put('/classes/{kela}', [AdminKelasController::class, 'update'])->name('classes.update');
+                Route::delete('/classes/{kela}', [AdminKelasController::class, 'destroy'])->name('classes.destroy');
+                Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
+                Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
+                Route::patch('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+                Route::get('/classes/{kela}/show', [AdminKelasController::class, 'show'])->name('classes.show'); 
+                // Di dalam grup admin...
+                Route::post('/classes/{kela}/bulk-update-students', [AdminKelasController::class, 'bulkUpdateStudents'])->name('classes.bulkUpdateStudents');
+                // Application Settings
+                Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
+                Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
 
-             // Application Settings (Middleware grup berlaku. Otorisasi Super Admin di controller)
-             Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
-             Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+                 // == RUTE BARU UNTUK MANAJEMEN JADWAL PIKET ==
+                 Route::resource('/picket-schedules', AdminJadwalPiketController::class)
+                 ->except(['show']) // Jika Anda tidak menggunakan halaman show individu
+                 ->names('picket_schedules'); // Memberi nama route seperti admin.picket_schedules.index, .create, dll.
+            // =============================================
+            });
+            // --- Akhir Grup Khusus Super Admin ---
         });
-        // --- Akhir Grup Khusus Super Admin ---
-
-    });
-// --- Akhir Grup Rute Area Admin ---
-
-// --- Rute Otentikasi Bawaan Laravel ---
+   
+});
 require __DIR__.'/auth.php';

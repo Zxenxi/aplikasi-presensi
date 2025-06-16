@@ -17,9 +17,6 @@
             @endif
         </div>
 
-        {{-- Pesan Sukses/Error --}}
-        {{-- @include('partials.common._alert') Atau tampilkan manual --}}
-
         {{-- Form Filter & Search --}}
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-6">
             {{-- Gunakan method GET agar filter muncul di URL --}}
@@ -38,7 +35,6 @@
                     <select name="role" id="role" x-model="selectedRole" class="form-select">
                         <option value="">Semua Role</option>
                         <option value="Super Admin">Super Admin</option>
-                        <option value="Petugas Piket">Petugas Piket</option>
                         <option value="Guru">Guru</option>
                         <option value="Siswa">Siswa</option>
                     </select>
@@ -71,23 +67,30 @@
             </form>
         </div>
 
-
         {{-- Tabel Pengguna --}}
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 user-table">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama
-                            </th> {{-- Ubah padding --}}
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Kelas/Info</th>
+                                Email
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kelas/Info
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Aksi</th>
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -118,8 +121,6 @@
 
                                         if ($role === 'Super Admin') {
                                             $roleBadge = 'badge-red'; // Sesuaikan warna badge jika perlu
-                                        } elseif ($role === 'Petugas Piket') {
-                                            $roleBadge = 'badge-purple';
                                         } elseif ($role === 'Guru') {
                                             $roleBadge = 'badge-cyan';
                                         } elseif ($role === 'Siswa') {
@@ -132,25 +133,56 @@
                                     {{-- Gunakan $roleBadge di sini --}}
                                     <span class="status-badge {{ $roleBadge }}">{{ $user->role }}</span>
                                 </td>
+
                                 {{-- Kolom Kelas/Info --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $user->isSiswa() ? $user->kelas->nama_kelas ?? 'Belum ada kelas' : '-' }}
                                 </td>
+                                {{-- Kolom Status Aktif --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    @if ($user->is_active)
+                                        <span class="status-badge badge-green">Aktif</span>
+                                    @else
+                                        <span class="status-badge badge-red">Tidak Aktif</span>
+                                    @endif
+                                </td>
                                 {{-- Kolom Aksi --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     <div class="flex justify-center items-center space-x-1">
-                                        {{-- Tombol View Detail (jika ada) --}}
-                                        {{-- <a href="{{ route('admin.users.show', $user) }}" title="Lihat Detail" class="action-button"><i data-lucide="eye"></i></a> --}}
                                         @if (auth()->user()->isSuperAdmin())
+                                            {{-- Tombol Edit --}}
                                             <a href="{{ route('admin.users.edit', $user) }}" title="Edit"
                                                 class="action-button"><i data-lucide="edit-2"></i></a>
-                                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                                onsubmit="..." class="inline">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" title="Hapus"
-                                                    class="action-button text-red-400 hover:text-red-600 hover:bg-red-50"><i
-                                                        data-lucide="trash-2"></i></button>
-                                            </form>
+
+                                            {{-- Tombol Toggle Status --}}
+                                            {{-- Jangan tampilkan tombol nonaktifkan untuk diri sendiri --}}
+                                            @if (Auth::id() !== $user->id || !$user->is_active)
+                                                <form action="{{ route('admin.users.toggleStatus', $user) }}"
+                                                    method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PATCH') {{-- Atau POST, sesuaikan dengan route --}}
+                                                    <button type="submit"
+                                                        title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
+                                                        class="action-button {{ $user->is_active ? 'text-yellow-500 hover:text-yellow-700' : 'text-green-500 hover:text-green-700' }}">
+                                                        <i
+                                                            data-lucide="{{ $user->is_active ? 'user-x' : 'user-check' }}"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            {{-- Tombol Hapus (jangan hapus diri sendiri) --}}
+                                            @if (Auth::id() !== $user->id)
+                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                                    onsubmit="return confirm('Yakin ingin menghapus user {{ $user->name }}?');"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" title="Hapus"
+                                                        class="action-button text-red-400 hover:text-red-600 hover:bg-red-50">
+                                                        <i data-lucide="trash-2"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @else
                                             -
                                         @endif
@@ -175,13 +207,4 @@
             @endif
         </div>
     </div>
-
-    {{-- Style --}}
-    <style>
-        /* ... (class form-label, form-input, form-select) ... */
-        /* ... (class status-badge & warnanya) ... */
-        /* ... (class action-button) ... */
-        /* ... (class btn-primary, btn-secondary) ... */
-        /* ... (class alert) ... */
-    </style>
 @endsection
