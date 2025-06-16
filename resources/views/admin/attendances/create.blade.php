@@ -12,7 +12,6 @@
                 {{-- Alpine data untuk kontrol jam masuk --}}
                 <form method="POST" action="{{ route('admin.attendances.store') }}" class="space-y-6" x-data="{ selectedStatus: '{{ old('status', 'Izin') }}' }">
                     @csrf
-
                     {{-- Pilih User --}}
                     <div>
                         <label for="user_id" class="form-label">Pengguna (Guru/Siswa) <span
