@@ -18,7 +18,7 @@ class CheckPicketAccess
     protected $routeMiddleware = [
         // ... middleware lain yang sudah ada ...
         // 'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class, // (Contoh jika Anda pakai Spatie, atau middleware lain)
-        'picket.access' => \App\Http\Middleware\CheckPicketAccess::class, // <-- TAMBAHKAN BARIS INI
+        'picket.access' => \App\Http\Middleware\CheckPicketAccess::class, 
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -8,10 +8,6 @@
                 <a href="{{ route('admin.attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
                     Daftar</a>
             </div>
-
-            {{-- Include Partial Alert --}}
-            {{-- @include('partials.common._alert') --}}
-
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                 {{-- Alpine data untuk kontrol jam masuk --}}
                 <form method="POST" action="{{ route('admin.attendances.store') }}" class="space-y-6" x-data="{ selectedStatus: '{{ old('status', 'Izin') }}' }">

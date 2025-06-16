@@ -12,7 +12,7 @@ class Attendance extends Model
     protected $fillable = [
         'user_id', 'tanggal', 'jam_masuk', 'status',
         'latitude', 'longitude', 'selfie_path', 'is_location_valid',
-        'updated_by_user_id', 'remarks' // <-- TAMBAHKAN INI
+        'updated_by_user_id', 'remarks' 
     ];
 
     protected $casts = [

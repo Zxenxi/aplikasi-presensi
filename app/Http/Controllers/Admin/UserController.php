@@ -20,7 +20,6 @@ class UserController extends Controller
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
 
-        // if (!$currentUser->isSuperAdmin() && !$currentUser->isPetugasPiket()) { // Sesuaikan jika Petugas Piket dihapus
         if (!$currentUser->isSuperAdmin()) { // Jika hanya Super Admin yang boleh
              abort(403, 'Akses Ditolak');
         }

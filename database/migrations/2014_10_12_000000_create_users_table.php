@@ -24,7 +24,6 @@ return new class extends Migration
             $table->timestamps();
             // $table->foreign('kelas_id')->references('id')->on('kelas')->onDelete('set null');
             // $table->foreignId('kelas_id')->nullable()->constrained()->onDelete('set null');
-
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
