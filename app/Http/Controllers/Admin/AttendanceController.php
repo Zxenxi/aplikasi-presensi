@@ -176,7 +176,6 @@ class AttendanceController extends Controller
             'tanggal' => 'required|date',
             'status' => ['required', Rule::in(['Hadir', 'Telat', 'Izin', 'Sakit', 'Absen'])],
             'jam_masuk' => 'nullable|required_if:status,Hadir,Telat|date_format:H:i',
-            // 'keterangan' => 'nullable|string|max:255', // Ganti atau tambahkan 'remarks'
             'remarks' => 'nullable|string|max:1000', // Contoh jika menggunakan 'remarks'
         ], [
             'jam_masuk.required_if' => 'Jam masuk wajib diisi jika status Hadir atau Telat.',

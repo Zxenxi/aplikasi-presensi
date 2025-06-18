@@ -85,7 +85,6 @@ class AttendanceController extends Controller
             return back()->with('error', 'Presensi gagal: Anda berada di luar area sekolah.');
         }
 
-
         // 2. Simpan Gambar Selfie
         $selfie_path = null;
         if ($request->filled('selfie_image_base64')) {
@@ -109,7 +108,6 @@ class AttendanceController extends Controller
         // 3. Tentukan Status Presensi (Hadir/Telat)
         $lateTime = Carbon::parse($settings->late_threshold_time);
         $status = $now->lte($lateTime) ? 'Hadir' : 'Telat';
-
 
         // --- Simpan ke Database ---
         try {
@@ -137,8 +135,6 @@ class AttendanceController extends Controller
             return back()->with('error', 'Terjadi kesalahan saat menyimpan data presensi.');
         }
     }
-
-
     /**
      * Menampilkan riwayat presensi user yang sedang login.
      */
@@ -159,8 +155,6 @@ class AttendanceController extends Controller
 
         return view('attendance.history', compact('attendances'));
     }
-
-
     /**
      * Menghitung jarak antara dua titik GPS menggunakan formula Haversine.
      * Mengembalikan jarak dalam meter.
