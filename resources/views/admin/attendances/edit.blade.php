@@ -12,7 +12,30 @@
 
             {{-- Include Partial Alert --}}
             {{-- @include('partials.common._alert') --}}
-
+            {{-- Di dalam file edit.blade.php --}}
+            {{-- @if ($logs->isNotEmpty())
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">
+                        Riwayat Perubahan
+                    </h3>
+                    <div class="mt-4 border-t border-gray-200">
+                        <dl class="divide-y divide-gray-200">
+                            @foreach ($logs as $log)
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt class="text-sm font-medium text-gray-500">
+                                        {{ $log->created_at->format('d M Y, H:i') }}
+                                    </dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        <p>{{ $log->description }}</p>
+                                        <p class="text-xs text-gray-600">Oleh:
+                                            {{ $log->user->name ?? 'User tidak dikenal' }}</p>
+                                    </dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    </div>
+                </div>
+            @endif --}}
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                 <form method="POST" action="{{ route('admin.attendances.update', $attendance) }}" class="space-y-6"
                     x-data="{ selectedStatus: '{{ old('status', $attendance->status) }}' }">

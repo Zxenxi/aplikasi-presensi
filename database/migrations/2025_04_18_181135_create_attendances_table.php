@@ -13,17 +13,27 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relasi ke users
+
+            // Kolom utama presensi
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('tanggal');
             $table->time('jam_masuk')->nullable();
             $table->enum('status', ['Hadir', 'Telat', 'Izin', 'Sakit', 'Absen']);
-            $table->decimal('latitude', 10, 7)->nullable(); // Presisi untuk GPS
+
+            // Kolom untuk fitur GPS dan Foto
+            $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            $table->string('selfie_path')->nullable(); // Path ke file gambar
-            $table->boolean('is_location_valid')->nullable(); // Status validasi lokasi
+            $table->string('selfie_path')->nullable();
+            $table->boolean('is_location_valid')->nullable();
+
+            // Kolom audit yang dipindahkan dari file migrasi lain
+            // $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('remarks')->nullable();
+
             $table->timestamps();
-    
-            $table->unique(['user_id', 'tanggal']); // User hanya bisa presensi sekali sehari
+
+            // Constraint unik agar user hanya bisa presensi sekali sehari
+            $table->unique(['user_id', 'tanggal']);
         });
     }
 

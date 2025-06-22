@@ -12,7 +12,7 @@ class Attendance extends Model
     protected $fillable = [
         'user_id', 'tanggal', 'jam_masuk', 'status',
         'latitude', 'longitude', 'selfie_path', 'is_location_valid',
-        'updated_by_user_id', 'remarks' 
+        'remarks'
     ];
 
     protected $casts = [
@@ -20,14 +20,11 @@ class Attendance extends Model
         'is_location_valid' => 'boolean',
     ];
 
+    /**
+     * Relasi ke User yang memiliki data presensi ini.
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    // Relasi ke user yang melakukan update (Admin/Petugas Piket)
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by_user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -4,12 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -17,13 +13,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('role')->default('Siswa'); // Default bisa Siswa/Guru
-            $table->unsignedBigInteger('kelas_id')->nullable(); // Untuk siswa
             $table->string('password');
+            $table->string('role')->default('Siswa');
+            $table->unsignedBigInteger('kelas_id')->nullable(); // Hanya kolom, bukan constraint
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
-            // $table->foreign('kelas_id')->references('id')->on('kelas')->onDelete('set null');
-            // $table->foreignId('kelas_id')->nullable()->constrained()->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -42,9 +37,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

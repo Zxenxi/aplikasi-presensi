@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\ActivityLog;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Validation\Rule; // Opsional
+use Carbon\Carbon; // <-- Tambahkan jika belum
 use App\Models\User; // <-- Tambahkan jika belum
 use App\Models\Kelas; // <-- Tambahkan jika belum
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // <-- Tambahkan jika belum
 use Illuminate\Support\Facades\Storage; // <-- Tambahkan jika belum
-use Carbon\Carbon; // <-- Tambahkan jika belum
-use Illuminate\Validation\Rule; // Opsional
 
 class AttendanceController extends Controller
 {
@@ -20,15 +21,55 @@ class AttendanceController extends Controller
      * Display a listing of the resource.
      * Dapat diakses oleh Super Admin & Petugas Piket.
      */
-    public function index(Request $request)
+
+    // public function index(Request $request)
+    // {
+    //     // Otorisasi sudah ditangani oleh middleware route group
+
+    //     $query = Attendance::query()->with(['user' => fn($q) => $q->with('kelas')])
+    //                 ->latest('tanggal') // Urutkan tanggal terbaru dulu
+    //                 ->latest('jam_masuk'); // Lalu jam terbaru
+
+    //     // Implementasi filter sederhana
+    //     if ($request->filled('search_name')) {
+    //          $query->whereHas('user', fn($q) => $q->where('name', 'like', '%' . $request->search_name . '%'));
+    //     }
+    //     if ($request->filled('filter_date')) {
+    //          $query->whereDate('tanggal', $request->filter_date);
+    //     }
+    //     if ($request->filled('filter_status')) {
+    //         $query->where('status', $request->filter_status);
+    //    }
+
+    //     $attendances = $query->paginate(20)->withQueryString(); // Tambahkan withQueryString agar filter terbawa di paginasi
+    //     $filters = $request->only(['search_name', 'filter_date', 'filter_status']); // Kirim filter aktif ke view
+
+    //     return view('admin.attendances.index', compact('attendances', 'filters'));
+    // }
+ public function index(Request $request)
     {
-        // Otorisasi sudah ditangani oleh middleware route group
+        $query = Attendance::query();
 
-        $query = Attendance::query()->with(['user' => fn($q) => $q->with('kelas')])
-                    ->latest('tanggal') // Urutkan tanggal terbaru dulu
-                    ->latest('jam_masuk'); // Lalu jam terbaru
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            });
+        }
 
-        // Implementasi filter sederhana
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('date')) {
+            try {
+                $date = \Carbon\Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+                $query->whereDate('tanggal', $date);
+            } catch (\Exception $e) {
+                // Tangani tanggal yang tidak valid jika perlu, atau abaikan saja
+            }
+        }
+            //     // Implementasi filter sederhana
         if ($request->filled('search_name')) {
              $query->whereHas('user', fn($q) => $q->where('name', 'like', '%' . $request->search_name . '%'));
         }
@@ -42,7 +83,15 @@ class AttendanceController extends Controller
         $attendances = $query->paginate(20)->withQueryString(); // Tambahkan withQueryString agar filter terbawa di paginasi
         $filters = $request->only(['search_name', 'filter_date', 'filter_status']); // Kirim filter aktif ke view
 
-        return view('admin.attendances.index', compact('attendances', 'filters'));
+        // --- PERUBAHAN UTAMA ADA DI SINI ---
+        // Kita memuat relasi 'user' (pemilik presensi)
+        // DAN relasi 'latestActivityLog' beserta 'user' yang terkait dengannya (pengubah data)
+        $attendances = $query->with(['user'])
+                             ->latest()
+                             ->paginate(10)
+                             ->withQueryString();
+
+        return view('admin.attendances.index', compact('attendances','filters'));
     }
 
     /**
@@ -146,21 +195,19 @@ class AttendanceController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk mengubah data presensi ini.');
         }
 
-        // Jika Petugas Piket, mungkin ada batasan tambahan?
-        // Misalnya, hanya boleh edit data hari ini atau beberapa hari ke belakang?
-        // if ($loggedInUser->isPetugasPiket() && $attendance->tanggal < now()->subDays(1)->toDateString()) {
-        //     abort(403, 'Petugas piket hanya dapat mengubah data presensi hari ini.');
-        // }
+    // Ambil data presensi beserta log dan user yang mengubah
+    // $logs = $attendance->activityLogs()->with('user')->latest()->get();
 
-        $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
-        $attendance->load('user');
-        return view('admin.attendances.edit', compact('attendance', 'users'));
+    //  $logs = $attendance->activityLogs()->with('user')->latest()->get();
+
+     $users = User::whereIn('role', ['Guru', 'Siswa'])->orderBy('name')->get();
+    $attendance->load('user');
+    return view('admin.attendances.edit', compact('attendance', 'users'));
+    // return view('admin.attendances.edit', compact('attendance', 'logs'));
+    
     }
 
-    /**
-     * Update the specified resource in storage.
-     * Hanya Super Admin.
-     */
+
     public function update(Request $request, Attendance $attendance)
     {
         /** @var \App\Models\User $loggedInUser */
@@ -205,7 +252,8 @@ class AttendanceController extends Controller
             // Controller Anda sudah punya validasi required_if, tapi ini pengaman tambahan
             return back()->withErrors(['jam_masuk' => 'Jam masuk wajib diisi untuk status Hadir/Telat.'])->withInput();
         }
-    
+        
+
         $attendance->update($dataToUpdate);
     
         return redirect()->route('admin.attendances.index')->with('success', 'Data presensi berhasil diperbarui.');

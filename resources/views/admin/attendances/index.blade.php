@@ -117,7 +117,6 @@
                                 class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Lokasi
                             </th>
-                            {{-- 8. Aksi --}}
                             <th scope="col"
                                 class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Aksi
@@ -167,13 +166,6 @@
                                             {{ $att->remarks ?: $att->keterangan }}
                                         </span>
                                     @endif
-
-                                    {{-- INFORMASI 'DIUBAH OLEH' YANG DIKEMBALIKAN --}}
-                                    @if ($att->updatedBy)
-                                        <span class="block text-xs text-gray-400 italic mt-1">
-                                            Diubah oleh: {{ $att->updatedBy->name }}
-                                        </span>
-                                    @endif
                                 </td>
 
                                 {{-- 6. Selfie --}}
@@ -200,7 +192,6 @@
                                         <span class="text-gray-400 text-xs">Manual</span>
                                     @endif
                                 </td>
-
                                 {{-- 8. Aksi (Telah Dikonsolidasi) --}}
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-center">
                                     <div class="flex justify-center items-center space-x-1">
@@ -241,6 +232,7 @@
                                         @endif
                                     </div>
                                 </td>
+
                             </tr>
                         @empty
                             <tr>
