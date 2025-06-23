@@ -161,9 +161,15 @@
                                     <span class="status-badge {{ $statusBadge }}">{{ $att->status }}</span>
 
                                     {{-- Menambahkan keterangan di bawah status untuk konteks --}}
-                                    @if ($att->remarks || $att->keterangan)
+                                    {{-- @if ($att->remarks || $att->keterangan)
                                         <span class="block text-xs text-gray-400 italic mt-1" title="Keterangan">
                                             {{ $att->remarks ?: $att->keterangan }}
+                                        </span>
+                                    @endif --}}
+                                    {{-- ... di dalam file index.blade.php ... --}}
+                                    @if ($att->remarks)
+                                        <span class="block text-xs text-gray-400 italic mt-1" title="Keterangan">
+                                            {{ $att->remarks }}
                                         </span>
                                     @endif
                                 </td>

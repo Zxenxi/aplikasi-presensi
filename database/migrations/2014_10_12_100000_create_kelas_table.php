@@ -13,8 +13,12 @@ return new class extends Migration
             $table->string('nama_kelas');
             $table->integer('tingkat');
             $table->string('jurusan')->nullable();
-            $table->unsignedBigInteger('wali_kelas_id')->nullable(); // Hanya kolom, bukan constraint
+            // $table->unsignedBigInteger('wali_kelas_id')->nullable(); // Hanya kolom, bukan constraint
             $table->timestamps();
+
+        // $table->foreign('id')->references('kelas_id')->on('users')->onDelete('set null');
+        // $table->foreign('id')->references('kelas_id')->on('users');
+
         });
     }
 

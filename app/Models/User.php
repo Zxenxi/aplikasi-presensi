@@ -32,19 +32,22 @@ class User extends Authenticatable
         'is_active' => 'boolean', // <-- TAMBAHKAN INI
     ];
     // Relasi ke Presensi
-    public function attendances() {
+    public function attendances() 
+    {
         return $this->hasMany(Attendance::class);
     }
 
     // Relasi ke Kelas (jika user adalah siswa)
-    public function kelas() {
+    public function kelas() 
+    {
         return $this->belongsTo(Kelas::class);
     }
 
     // Relasi ke Kelas (jika user adalah wali kelas)
-    public function kelasWali() {
-        return $this->hasOne(Kelas::class, 'wali_kelas_id');
-    }
+    // public function kelasWali() 
+    // {
+    //     return $this->hasOne(Kelas::class, 'wali_kelas_id');
+    // }
 
     // Helper Methods (Opsional)
     public function isSuperAdmin()
@@ -57,17 +60,17 @@ class User extends Authenticatable
      *
      * @return bool
      */
- public function isPetugasPiket(): bool 
+    public function isPetugasPiket(): bool 
     {
         // User adalah 'Guru' DAN punya jadwal piket hari ini.
         if ($this->role === 'Guru') {
-            // Dapatkan hari ini dalam format angka (1 untuk Senin, 2 untuk Selasa, dst.)
-            $hariIni = Carbon::now(config('app.timezone'))->dayOfWeekIso;
+            // Dapatkan hari ini dalam format angka (1 untuk Senin, 2 untuk Selasa, dst.) dengan timezone Jakarta
+            $hariIni = Carbon::now('Asia/Jakarta')->dayOfWeekIso;
 
             // Cek apakah ada jadwal piket untuk guru ini pada hari ini di database.
             return JadwalPiket::where('user_id', $this->id)
-                               ->where('hari_ke', $hariIni)
-                               ->exists();
+                            ->where('hari_ke', $hariIni)
+                            ->exists();
         }
 
         // Jika bukan keduanya, maka bukan petugas piket.

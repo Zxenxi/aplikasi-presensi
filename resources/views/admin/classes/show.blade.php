@@ -5,18 +5,20 @@
     <div class="p-4 sm:p-6 lg:p-8 space-y-6" x-data="classShowPageData()">
 
         {{-- 1. JUDUL HALAMAN & TOMBOL KEMBALI --}}
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-800">Detail Kelas: {{ $kela->nama_kelas }}</h1>
-                <p class="text-sm text-gray-500 mt-1">
-                    Tingkat: {{ $kela->tingkat }} |
-                    Jurusan: {{ $kela->jurusan ?? '-' }} |
-                    Wali Kelas: {{ $kela->waliKelas->name ?? '-' }}
-                </p>
-            </div>
-            <a href="{{ route('admin.classes.index') }}" class="text-sm text-indigo-600 hover:underline">
-                &larr; Kembali ke Manajemen Kelas
-            </a>
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">Detail Kelas: {{ $kela->nama_kelas }}</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                <span>Tingkat: {{ $kela->tingkat }}</span>
+                <span class="mx-2">|</span>
+                <span>Jurusan: {{ $kela->jurusan ?? '-' }}</span>
+                <span class="mx-2">|</span>
+                <span>
+                    Jumlah Siswa:
+                    <span class="font-medium text-gray-800">{{ $activeStudentCountInClass }}</span>
+                    <span class="text-gray-400">/ {{ $totalStudentCountInClass }}</span>
+                    (Aktif / Total)
+                </span>
+            </p>
         </div>
 
         {{-- 2. NOTIFIKASI --}}
@@ -49,14 +51,15 @@
                     {{-- Form ini hanya untuk reload halaman dengan parameter GET, bukan bagian dari form POST utama --}}
                     <form method="GET" action="{{ route('admin.classes.show', $kela) }}" id="filterSiswaFormOnPage"
                         class="flex items-end space-x-2">
+                        {{-- resources/views/admin/classes/show.blade.php --}}
                         <div>
                             <label for="status_siswa_filter_select" class="form-label text-sm">Tampilkan Siswa:</label>
                             <select name="status_siswa" id="status_siswa_filter_select" class="form-select form-select-sm"
-                                onchange="document.getElementById('filterSiswaFormOnPage').submit()">
-                                <option value="1" @if ($filterStatusSiswa == '1') selected @endif>Aktif</option>
-                                <option value="0" @if ($filterStatusSiswa == '0') selected @endif>Tidak Aktif
+                                onchange="this.form.submit()"> {{-- Cara submit form yang lebih sederhana --}}
+                                <option value="1" {{ $filterStatusSiswa == '1' ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ $filterStatusSiswa == '0' ? 'selected' : '' }}>Tidak Aktif
                                 </option>
-                                <option value="all" @if ($filterStatusSiswa == 'all') selected @endif>Semua</option>
+                                <option value="all" {{ $filterStatusSiswa == 'all' ? 'selected' : '' }}>Semua</option>
                             </select>
                         </div>
                     </form>

@@ -9,33 +9,6 @@
                 <a href="{{ route('admin.attendances.index') }}" class="text-sm text-indigo-600 hover:underline">Kembali ke
                     Daftar</a>
             </div>
-
-            {{-- Include Partial Alert --}}
-            {{-- @include('partials.common._alert') --}}
-            {{-- Di dalam file edit.blade.php --}}
-            {{-- @if ($logs->isNotEmpty())
-                <div class="mt-8">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900">
-                        Riwayat Perubahan
-                    </h3>
-                    <div class="mt-4 border-t border-gray-200">
-                        <dl class="divide-y divide-gray-200">
-                            @foreach ($logs as $log)
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                                    <dt class="text-sm font-medium text-gray-500">
-                                        {{ $log->created_at->format('d M Y, H:i') }}
-                                    </dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                        <p>{{ $log->description }}</p>
-                                        <p class="text-xs text-gray-600">Oleh:
-                                            {{ $log->user->name ?? 'User tidak dikenal' }}</p>
-                                    </dd>
-                                </div>
-                            @endforeach
-                        </dl>
-                    </div>
-                </div>
-            @endif --}}
             <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                 <form method="POST" action="{{ route('admin.attendances.update', $attendance) }}" class="space-y-6"
                     x-data="{ selectedStatus: '{{ old('status', $attendance->status) }}' }">
@@ -120,10 +93,9 @@
                     {{-- Keterangan --}}
                     <div>
                         <label for="keterangan" class="form-label">Keterangan (Opsional)</label>
-                        <textarea id="keterangan" name="keterangan" rows="3"
-                            class="form-input @error('keterangan') border-red-500 @enderror"
-                            placeholder="Contoh: Izin acara keluarga, Sakit demam, dll.">{{ old('keterangan', $attendance->keterangan) }}</textarea>
-                        @error('keterangan')
+                        <textarea id="remarks" name="remarks" rows="3" class="form-input @error('keterangan') border-red-500 @enderror"
+                            placeholder="Contoh: Izin acara keluarga, Sakit demam, dll.">{{ old('remarks', $attendance->remarks) }}</textarea>
+                        @error('remarks')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>

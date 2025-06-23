@@ -20,8 +20,6 @@
                     <label for="nama_kelas" class="form-label">Nama Kelas <span class="text-red-500">*</span></label>
                     <input type="text" id="nama_kelas" name="nama_kelas" x-model="currentClass.nama" required
                         class="form-input" placeholder="Contoh: 10 IPA 1">
-                    {{-- Error handling bisa ditambahkan di sini jika submit via AJAX,
-                        jika pakai full page refresh, error akan tampil di halaman index --}}
                 </div>
 
                 {{-- Tingkat --}}
@@ -44,27 +42,12 @@
                         class="form-input" placeholder="Contoh: IPA, IPS, Bahasa, Umum (Opsional)">
                 </div>
 
-                {{-- Wali Kelas --}}
-                <div class="form-group">
-                    <label for="modal_wali_kelas_id" class="form-label">Wali Kelas (Opsional)</label>
-                    {{-- Dropdown ini diisi dari $guru yang di-pass ke view index --}}
-                    <select name="wali_kelas_id" id="modal_wali_kelas_id" x-model="currentClass.waliKelasId"
-                        class="form-select">
-                        <option value="">-- Tidak Ada Wali Kelas --</option>
-                        {{-- Pastikan variabel $guru ada saat include modal ini --}}
-                        @isset($guru)
-                            @foreach ($guru as $g)
-                                <option value="{{ $g->id }}">{{ $g->name }}</option>
-                            @endforeach
-                        @endisset
-                    </select>
-                    {{-- Error spesifik untuk wali_kelas_id bisa ditampilkan di sini jika pakai AJAX --}}
-                </div>
-
+                {{-- Jumlah Siswa (Hanya Tampilan di Modal Edit) --}}
                 {{-- Jumlah Siswa (Hanya Tampilan di Modal Edit) --}}
                 <div class="form-group" x-show="isEditingClass && currentClass.jumlahSiswa !== undefined">
                     <label class="form-label">Jumlah Siswa Saat Ini</label>
-                    <p class="text-sm text-gray-600" x-text="currentClass.jumlahSiswa"></p>
+                    {{-- Gunakan elemen <p> dan direktif x-text dari Alpine untuk menampilkan data --}}
+                    <p class="text-sm text-gray-600 pt-1" x-text="currentClass.jumlahSiswa"></p>
                 </div>
 
 

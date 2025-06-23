@@ -12,17 +12,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            SettingsSeeder::class, // Pengaturan umum dulu
-            KelasSeeder::class,    // <<< PASTIKAN INI SEBELUM UserSeeder
-            UserSeeder::class,      // Baru User (Guru, Siswa, Admin)
+            SettingsSeeder::class,
+            KelasSeeder::class,    // <-- Benar, dijalankan sebelum UserSeeder
+            UserSeeder::class,
             AttendanceSeeder::class,
         ]);
-        // $this->call([
-        //     SettingsSeeder::class, // Pastikan ini sudah ada
-        //     UserSeeder::class,    // Pastikan ini sudah ada & membuat cukup user
-        //     KelasSeeder::class,   // Jika Anda punya seeder kelas
-        //     AttendanceSeeder::class, // <-- Tambahkan ini
-        //     // TodaysAttendanceSeeder::class,
-        // ]);
     }
 }

@@ -16,34 +16,41 @@ class KelasController extends Controller
      * Display a listing of the resource.
      */
 // app/Http/Controllers/Admin/KelasController.php
-public function index(Request $request) // Tambahkan Request $request
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    // if (!$user->isSuperAdmin() && !$user->isPetugasPiket()) { // Sesuaikan jika Petugas Piket dihapus
-    if (!$user->isSuperAdmin()) { // Jika hanya Super Admin
-         abort(403, 'Akses Ditolak');
+    // app/Http/Controllers/Admin/KelasController.php
+  // app/Http/Controllers/Admin/KelasController.php
+        public function index(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak');
+        }
+
+        $filterTingkat = $request->input('tingkat');
+        $filterNamaKelas = $request->input('search_nama_kelas');
+
+        $query = Kelas::query()->withCount([
+            'students',
+            'students as active_students_count' => function ($query) {
+                $query->where('is_active', true);
+            }
+        ]);
+        
+        if ($filterTingkat) {
+            $query->where('tingkat', $filterTingkat);
+        }
+        if ($filterNamaKelas) {
+            $query->where('nama_kelas', 'like', '%' . $filterNamaKelas . '%');
+        }
+
+        $kelas = $query->orderBy('tingkat')->orderBy('nama_kelas')->get();
+        
+        $guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->get();
+        $tingkatOptions = Kelas::select('tingkat')->distinct()->orderBy('tingkat')->pluck('tingkat');
+        $filters = $request->only(['tingkat', 'search_nama_kelas']);
+
+        return view('admin.classes.index', compact('kelas', 'guru', 'tingkatOptions', 'filters', 'filterTingkat', 'filterNamaKelas'));
     }
-
-    $filterTingkat = $request->input('tingkat');
-    $filterWaliKelas = $request->input('wali_kelas_id');
-
-    $query = Kelas::query()->with(['waliKelas', 'students']);
-
-    if ($filterTingkat) {
-        $query->where('tingkat', $filterTingkat);
-    }
-
-    if ($filterWaliKelas) {
-        $query->where('wali_kelas_id', $filterWaliKelas);
-    }
-
-    $kelas = $query->orderBy('tingkat')->orderBy('nama_kelas')->get();
-    $guru = User::where('role', 'Guru')->where('is_active', true)->orderBy('name')->get(); // Hanya guru aktif
-    $tingkatOptions = Kelas::select('tingkat')->distinct()->orderBy('tingkat')->pluck('tingkat'); // Ambil opsi tingkat
-
-    return view('admin.classes.index', compact('kelas', 'guru', 'tingkatOptions', 'filterTingkat', 'filterWaliKelas'));
-}
 
     /**
      * Store a newly created resource in storage.
@@ -62,20 +69,8 @@ public function index(Request $request) // Tambahkan Request $request
             'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas',
             'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
-            'wali_kelas_id' => 'nullable|exists:users,id',
         ]);
 
-        if (!empty($validated['wali_kelas_id'])) {
-            $wali = User::find($validated['wali_kelas_id']);
-            /** @var \App\Models\User|null $wali */ // Hint tambahan untuk $wali
-            if (!$wali || !$wali->isGuru()) { // Panggil isGuru() pada objek User $wali
-                 return back()
-                        ->withErrors(['wali_kelas_id' => 'Wali kelas yang dipilih harus memiliki role Guru.'])
-                        ->withInput();
-            }
-        } else {
-            $validated['wali_kelas_id'] = null;
-        }
 
         Kelas::create($validated);
         return back()->with('success', 'Kelas berhasil ditambahkan.');
@@ -99,20 +94,8 @@ public function index(Request $request) // Tambahkan Request $request
             'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas,' . $kela->id,
             'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
-            'wali_kelas_id' => 'nullable|exists:users,id',
+            // 'wali_kelas_id' => 'nullable|exists:users,id',
         ]);
-
-        if (!empty($validated['wali_kelas_id'])) {
-            $wali = User::find($validated['wali_kelas_id']);
-             /** @var \App\Models\User|null $wali */ // Hint tambahan untuk $wali
-            if (!$wali || !$wali->isGuru()) { // Panggil isGuru() pada objek User $wali
-                 return back()
-                        ->withErrors(['wali_kelas_id' => 'Wali kelas yang dipilih harus memiliki role Guru.'])
-                        ->withInput();
-            }
-        } else {
-            $validated['wali_kelas_id'] = null;
-        }
 
         $kela->update($validated);
         return back()->with('success', 'Data kelas berhasil diperbarui.');
@@ -209,25 +192,37 @@ public function index(Request $request) // Tambahkan Request $request
         }
     }
 
-public function show(Kelas $kela, Request $request)
+    public function show(Kelas $kela, Request $request)
 {
-    // ... (kode otorisasi) ...
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    if (!$user->isSuperAdmin()) {
+        abort(403, 'Akses Ditolak');
+    }
+
     $filterStatusSiswa = $request->input('status_siswa', '1');
 
-    $kela->load(['waliKelas', 'students' => function ($query) use ($filterStatusSiswa) {
+    $kela->load(['students' => function ($query) use ($filterStatusSiswa) {
         $query->where('role', 'Siswa');
-        if ($filterStatusSiswa !== 'all') {
-            $query->where('is_active', (bool)$filterStatusSiswa);
+
+        if ($filterStatusSiswa === '1') {
+            $query->where('is_active', true);
+        } elseif ($filterStatusSiswa === '0') {
+            $query->where('is_active', false);
         }
+        // Jika 'all', tidak ada filter is_active yang diterapkan
+        
         $query->orderBy('name');
     }]);
-
-    // Ambil semua kelas KECUALI kelas saat ini untuk opsi pindah kelas
+    
+    $activeStudentCountInClass = User::where('kelas_id', $kela->id)->where('is_active', true)->count();
+    $totalStudentCountInClass = User::where('kelas_id', $kela->id)->count();
     $allKelas = Kelas::where('id', '!=', $kela->id)->orderBy('nama_kelas')->get();
 
-    return view('admin.classes.show', compact('kela', 'allKelas', 'filterStatusSiswa'));
+    return view('admin.classes.show', compact('kela', 'allKelas', 'filterStatusSiswa', 'activeStudentCountInClass', 'totalStudentCountInClass'));
 }
- public function bulkUpdateStudents(Request $request, Kelas $kela)
+
+     public function bulkUpdateStudents(Request $request, Kelas $kela)
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
@@ -236,15 +231,12 @@ public function show(Kelas $kela, Request $request)
         }
 
         $validated = $request->validate([
-            'bulk_action' => 'required|string|in:activate,deactivate,move_class',
+            'bulk_action' => 'required|string|in:activate,deactivate',
             'siswa_ids' => 'required|array',
             'siswa_ids.*' => 'exists:users,id',
-            'target_kelas_id' => 'nullable|required_if:bulk_action,move_class|exists:kelas,id|different:'.$kela->id,
         ],[
             'bulk_action.required' => 'Aksi massal harus dipilih.',
             'siswa_ids.required' => 'Tidak ada siswa yang dipilih.',
-            'target_kelas_id.required_if' => 'Kelas tujuan harus dipilih untuk aksi pindah kelas.',
-            'target_kelas_id.different' => 'Kelas tujuan tidak boleh sama dengan kelas asal.',
         ]);
 
         $siswaIds = $validated['siswa_ids'];
@@ -254,12 +246,12 @@ public function show(Kelas $kela, Request $request)
         DB::beginTransaction();
         try {
             $studentsToUpdate = User::whereIn('id', $siswaIds)
-                                     ->where('kelas_id', $kela->id)
-                                     ->where('role', 'Siswa')
-                                     ->get();
+                                    ->where('kelas_id', $kela->id)
+                                    ->where('role', 'Siswa')
+                                    ->get();
 
             if($studentsToUpdate->isEmpty()){
-                DB::rollBack(); // Pastikan rollback jika tidak ada siswa yang valid
+                DB::rollBack();
                 return back()->with('warning', 'Tidak ada siswa valid yang ditemukan untuk diproses dari kelas ini.');
             }
 
@@ -272,23 +264,15 @@ public function show(Kelas $kela, Request $request)
                         break;
                     case 'deactivate':
                         if ($siswa->id === $currentUser->id) {
-                            continue 2; // <-- PERBAIKAN DI SINI: Lanjutkan ke iterasi foreach berikutnya
+                            continue 2;
                         }
                         $siswa->is_active = false;
-                        $siswa->save();
-                        $updatedCount++;
-                        break;
-                    case 'move_class':
-                        $siswa->kelas_id = $validated['target_kelas_id'];
-                        // Pertimbangkan untuk mengaktifkan siswa jika dipindahkan ke kelas baru, jika relevan
-                        // $siswa->is_active = true;
                         $siswa->save();
                         $updatedCount++;
                         break;
                 }
             }
             DB::commit();
-            // Ganti _ dengan spasi dan buat huruf pertama kapital untuk pesan yang lebih baik
             $actionFriendlyName = ucfirst(str_replace('_', ' ', $action));
             return back()->with('success', "$updatedCount siswa berhasil diproses dengan aksi: " . $actionFriendlyName . ".");
         } catch (\Exception $e) {

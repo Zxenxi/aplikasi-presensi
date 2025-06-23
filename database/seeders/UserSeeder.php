@@ -20,32 +20,21 @@ class UserSeeder extends Seeder
 
         // === Buat User Guru ===
         $this->command->info('Memulai Seeder Guru...');
-        $guruUsers = [];
         for ($i = 0; $i < 15; $i++) { // Buat 15 guru
-            $guruUsers[] = User::create([
+            User::create([
                 'name' => 'Guru ' . $faker->firstName() . ' ' . $faker->lastName(),
-                'email' => "guru" . ($i + 1) . "@example.com", // Email sesuai format yang diminta
+                'email' => "guru" . ($i + 1) . "@example.com",
                 'email_verified_at' => now(),
                 'role' => 'Guru',
-                'kelas_id' => null,
+                'kelas_id' => null, // Guru tidak punya kelas_id
                 'password' => Hash::make('password'),
                 'remember_token' => \Illuminate\Support\Str::random(10),
             ]);
         }
         $this->command->info('-> Seeder Guru selesai.');
 
-        // === Assign Wali Kelas ===
-        $this->command->info('Memulai Assign Wali Kelas...');
-        $availableGuruIds = collect($guruUsers)->pluck('id')->shuffle();
-        $allKelas = Kelas::all();
-        foreach ($allKelas as $index => $kelas) {
-            $waliKelasId = $availableGuruIds->get($index);
-            if ($waliKelasId) {
-                $kelas->wali_kelas_id = $waliKelasId;
-                $kelas->save();
-            }
-        }
-        $this->command->info('-> Assign Wali Kelas selesai.');
+        // === BLOK ASSIGN WALI KELAS DIHAPUS DARI SINI ===
+        // Tidak ada lagi logika untuk assign wali kelas
 
         // === Buat User Siswa ===
         $this->command->info('Memulai Seeder Siswa...');
@@ -61,7 +50,7 @@ class UserSeeder extends Seeder
                 $uniqueSuffix = uniqid();
                 User::create([
                     'name' => $faker->firstName() . ' ' . $faker->lastName(),
-                    'email' => "siswa{$randomKelasId}_{$s}_{$uniqueSuffix}@example.com", // Format email siswa
+                    'email' => "siswa{$randomKelasId}_{$s}_{$uniqueSuffix}@example.com",
                     'email_verified_at' => now(),
                     'role' => 'Siswa',
                     'kelas_id' => $randomKelasId,
@@ -76,7 +65,7 @@ class UserSeeder extends Seeder
         $this->command->info('Memulai Seeder Admin...');
         User::create([
             'name' => 'Admin Presensi',
-            'email' => 'admin@example.com', // Email admin
+            'email' => 'admin@example.com',
             'email_verified_at' => now(),
             'role' => 'Super Admin',
             'kelas_id' => null,

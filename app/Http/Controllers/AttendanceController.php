@@ -20,7 +20,7 @@ class AttendanceController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
         $settings = Setting::firstOrFail(); // Ambil pengaturan
 
         // Cek apakah sudah presensi hari ini
@@ -43,7 +43,7 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $today = Carbon::today()->toDateString();
         $settings = Setting::firstOrFail();
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $currentTime = $now->toTimeString('minute'); // Format HH:MM
 
         // --- Validasi Awal ---
