@@ -6,6 +6,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use App\Models\Kelas;
 use App\Models\Attendance;
+use App\Models\JadwalPiket;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
