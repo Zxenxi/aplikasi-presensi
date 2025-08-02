@@ -3,69 +3,63 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
-use Maatwebsite\Excel\Concerns\FromQuery;      // Ambil data dari query Eloquent
-use Maatwebsite\Excel\Concerns\WithHeadings;  // Tentukan header kolom
-use Maatwebsite\Excel\Concerns\WithMapping;   // Ubah data per baris
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;// Atur lebar kolom otomatis
-use Maatwebsite\Excel\Concerns\WithStyles;    // Beri style (misal bold header)
+use Maatwebsite\Excel\Concerns\FromCollection; // Ganti FromQuery menjadi FromCollection
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithDrawings; // <-- Tambahkan ini
+use Maatwebsite\Excel\Concerns\WithEvents; // <-- Tambahkan ini
+use Maatwebsite\Excel\Events\AfterSheet; // <-- Tambahkan ini
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Illuminate\Support\Facades\Storage; // Untuk akses URL selfie
-use Carbon\Carbon; // Untuk format tanggal/waktu
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing; // <-- Tambahkan ini
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
-class AttendanceReportExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
+class AttendanceReportExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithDrawings, WithEvents
 {
-    protected $filters;
+    protected $attendances;
+    protected $imageRows = []; // Simpan baris mana saja yang punya gambar
 
-    // Terima filter dari controller
     public function __construct(array $filters = [])
     {
-        $this->filters = $filters;
-    }
+        // Logika query yang sama dari controller kita pindahkan ke sini
+        $query = Attendance::query()->with(['user.kelas']);
 
-    /**
-    * @return \Illuminate\Database\Eloquent\Builder
-    */
-    public function query()
-    {
-        // --- Bangun Query Sama Persis Seperti di ReportController@index ---
-        // Ini penting agar data yang diexport konsisten dengan yang tampil
-        $query = Attendance::query()->with(['user' => function ($query) {
-                $query->with('kelas'); // Eager load kelas user jika ada
-            }]);
-
-        // Terapkan filter tanggal (Harus ada)
-        if (!empty($this->filters['tanggal_mulai']) && !empty($this->filters['tanggal_selesai'])) {
-            $query->whereBetween('tanggal', [$this->filters['tanggal_mulai'], $this->filters['tanggal_selesai']]);
+        if (!empty($filters['tanggal_mulai']) && !empty($filters['tanggal_selesai'])) {
+            $query->whereBetween('tanggal', [$filters['tanggal_mulai'], $filters['tanggal_selesai']]);
         } else {
-             // Default jika tidak ada tanggal (misal 7 hari terakhir), sesuaikan jika perlu
-             // Atau bisa juga mengembalikan query kosong jika tanggal wajib
-              $query->whereBetween('tanggal', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            $query->whereBetween('tanggal', [now()->subDays(6)->toDateString(), now()->toDateString()]);
         }
 
-
-        // Terapkan filter lain
-         if (!empty($this->filters['tipe_user'])) {
-            $query->whereHas('user', fn($q) => $q->where('role', $this->filters['tipe_user']));
+        if (!empty($filters['tipe_user'])) {
+            $query->whereHas('user', fn($q) => $q->where('role', $filters['tipe_user']));
         }
-        if (!empty($this->filters['tipe_user']) && $this->filters['tipe_user'] === 'Siswa' && !empty($this->filters['kelas_id'])) {
-            $query->whereHas('user', fn($q) => $q->where('kelas_id', $this->filters['kelas_id']));
+        if (!empty($filters['tipe_user']) && $filters['tipe_user'] === 'Siswa' && !empty($filters['kelas_id'])) {
+            $query->whereHas('user', fn($q) => $q->where('kelas_id', $filters['kelas_id']));
         }
-         if (!empty($this->filters['status_presensi'])) {
-            $query->where('status', $this->filters['status_presensi']);
+        if (!empty($filters['status_presensi'])) {
+            $query->where('status', $filters['status_presensi']);
         }
 
-        // Urutkan data
-        $query->orderBy('tanggal', 'asc')->orderBy('user_id', 'asc')->orderBy('jam_masuk', 'asc');
-
-        return $query; // Kembalikan builder query, package akan menjalankannya
+        $this->attendances = $query->orderBy('tanggal', 'asc')->orderBy('user_id', 'asc')->orderBy('jam_masuk', 'asc')->get();
+    
+        // Siapkan data baris mana yang ada gambarnya
+        foreach ($this->attendances as $index => $attendance) {
+            if ($attendance->selfie_path && Storage::disk('public')->exists($attendance->selfie_path)) {
+                // +2 karena baris data mulai dari 2 (setelah header)
+                $this->imageRows[] = $index + 2;
+            }
+        }
     }
 
-     /**
-     * @return array
-     */
+    public function collection()
+    {
+        return $this->attendances;
+    }
+
     public function headings(): array
     {
-        // Definisikan header kolom di file Excel
         return [
             'Tanggal',
             'Nama Pengguna',
@@ -76,27 +70,20 @@ class AttendanceReportExport implements FromQuery, WithHeadings, WithMapping, Sh
             'Lokasi Valid?',
             'Koordinat (Lat,Lon)',
             'Keterangan',
-            // 'URL Selfie', // Jarang diperlukan di Excel, bisa ditambahkan jika mau
+            'Foto Selfie', // <-- Tambah kolom selfie
         ];
     }
 
-    /**
-     * Memetakan data dari setiap model Attendance ke array untuk baris Excel.
-     * @param Attendance $attendance
-     * @return array
-     */
     public function map($attendance): array
     {
-         // Format data per baris sesuai urutan headings
-         $user = $attendance->user; // Akses relasi user yg sudah di-eager load
-         $kelasName = ($user?->role === 'Siswa' && $user?->kelas) ? $user->kelas->nama_kelas : '-'; // Cek null safety
-         $locationValid = is_null($attendance->is_location_valid) ? 'N/A' : ($attendance->is_location_valid ? 'Ya' : 'Tidak');
-         $coordinates = ($attendance->latitude && $attendance->longitude) ? number_format($attendance->latitude, 5) . ', ' . number_format($attendance->longitude, 5) : '-';
-         $jamMasuk = $attendance->jam_masuk ? Carbon::parse($attendance->jam_masuk)->format('H:i') : '-';
-         // $selfieUrl = $attendance->selfie_path && Storage::disk('public')->exists($attendance->selfie_path) ? Storage::url($attendance->selfie_path) : '';
+        $user = $attendance->user;
+        $kelasName = ($user?->role === 'Siswa' && $user?->kelas) ? $user->kelas->nama_kelas : '-';
+        $locationValid = is_null($attendance->is_location_valid) ? 'N/A' : ($attendance->is_location_valid ? 'Ya' : 'Tidak');
+        $coordinates = ($attendance->latitude && $attendance->longitude) ? number_format($attendance->latitude, 5) . ', ' . number_format($attendance->longitude, 5) : '-';
+        $jamMasuk = $attendance->jam_masuk ? Carbon::parse($attendance->jam_masuk)->format('H:i') : '-';
 
         return [
-            $attendance->tanggal->isoFormat('DD/MM/YYYY'), // Format tanggal Excel friendly
+            $attendance->tanggal->isoFormat('DD/MM/YYYY'),
             $user->name ?? 'N/A',
             $user->role ?? 'N/A',
             $kelasName,
@@ -104,19 +91,49 @@ class AttendanceReportExport implements FromQuery, WithHeadings, WithMapping, Sh
             $attendance->status,
             $locationValid,
             $coordinates,
-            $attendance->keterangan ?? '', // Tambahkan keterangan
-            // $selfieUrl,
+            $attendance->keterangan ?? '',
+            '', // Kolom selfie dikosongkan, akan diisi oleh drawing
         ];
     }
 
-    /**
-     * Menerapkan style ke sheet Excel.
-     */
-     public function styles(Worksheet $sheet)
+    public function drawings()
+    {
+        $drawings = [];
+        foreach ($this->attendances as $index => $attendance) {
+            if ($attendance->selfie_path && Storage::disk('public')->exists($attendance->selfie_path)) {
+                $drawing = new Drawing();
+                $drawing->setName('Selfie');
+                $drawing->setDescription('Selfie Pengguna');
+                $drawing->setPath(storage_path('app/public/' . $attendance->selfie_path));
+                $drawing->setHeight(60); // Tinggi gambar dalam pixel
+                $drawing->setCoordinates('J' . ($index + 2)); // Kolom J, baris ke-($index + 2)
+
+                $drawings[] = $drawing;
+            }
+        }
+        return $drawings;
+    }
+
+    public function registerEvents(): array
     {
         return [
-            // Membuat baris pertama (header) menjadi tebal (bold)
-            1    => ['font' => ['bold' => true]],
+            AfterSheet::class => function(AfterSheet $event) {
+                // Atur tinggi baris untuk semua baris yang memiliki gambar
+                foreach ($this->imageRows as $row) {
+                    $event->sheet->getDelegate()->getRowDimension($row)->setRowHeight(50); // Atur tinggi baris (dalam points)
+                }
+                 // Mengatur alignment vertikal untuk seluruh sheet agar di tengah
+                 $event->sheet->getDelegate()->getStyle(
+                    'A1:' . $event->sheet->getDelegate()->getHighestColumn() . $event->sheet->getDelegate()->getHighestRow()
+                )->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            },
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => ['font' => ['bold' => true]],
         ];
     }
 }

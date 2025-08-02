@@ -151,10 +151,10 @@ public function exportPdf(Request $request)
     $fileName = 'laporan_presensi_' . $validatedFilters['tanggal_mulai'] . '_sd_' . $validatedFilters['tanggal_selesai'] . '.pdf';
 
     // Load view PDF dengan data
-    $pdf = Pdf::loadView('admin.reports.pdf', [
-        'results' => $results,
-        'filters' => $validatedFilters, // Kirim filter ke view PDF
-        'kelas' => $kelas // Kirim data kelas ke view PDF
+    $pdf = Pdf::loadView('admin.reports.pdf.attendance', [
+        'attendances' => $results,
+        'tanggal_mulai' => Carbon::parse($validatedFilters['tanggal_mulai'])->isoFormat('D MMMM YYYY'),
+        'tanggal_selesai' => Carbon::parse($validatedFilters['tanggal_selesai'])->isoFormat('D MMMM YYYY'),
     ]);
 
     // Set orientasi kertas menjadi landscape (opsional)
