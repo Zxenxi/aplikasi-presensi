@@ -26,7 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             //------------------------------------
             'role' => \App\Http\Middleware\EnsureUserHasRole::class, // <-- Tambahkan baris ini
             //------------------------------------
-    
+    'web' =>    \App\Http\Middleware\UpgradeToHttpsUnderNgrok::class,
+     
             // ... middleware custom lainnya jika ada ...
         ]);
     })

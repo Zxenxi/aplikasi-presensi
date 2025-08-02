@@ -1,29 +1,38 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
+@section('content')
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
+    {{-- Header Section --}}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">
+                Profile Settings
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Kelola informasi profil dan keamanan akun Anda
+            </p>
         </div>
     </div>
-</x-app-layout>
+
+    {{-- Profile Information Card --}}
+    <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
+        <div class="max-w-2xl">
+            @include('profile.partials.update-profile-information-form')
+        </div>
+    </div>
+
+    {{-- Update Password Card --}}
+    <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
+        <div class="max-w-2xl">
+            @include('profile.partials.update-password-form')
+        </div>
+    </div>
+
+    {{-- Delete Account Card --}}
+    <div class="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200">
+        <div class="max-w-2xl">
+            @include('profile.partials.delete-user-form')
+        </div>
+    </div>
+</div>
+@endsection

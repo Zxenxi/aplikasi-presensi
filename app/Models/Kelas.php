@@ -15,9 +15,4 @@ class Kelas extends Model {
     {
         return $this->hasMany(User::class, 'kelas_id'); // Pastikan foreign key 'kelas_id' benar
     }
-    
-    // public function waliKelas() 
-    // {
-    //      return $this->belongsTo(User::class, 'wali_kelas_id'); 
-    // }
 }

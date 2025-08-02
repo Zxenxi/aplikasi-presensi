@@ -1,6 +1,5 @@
 <?php
 
-// app/Models/User.php
 namespace App\Models;
 
 use Carbon\Carbon;
@@ -42,12 +41,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Kelas::class);
     }
-
-    // Relasi ke Kelas (jika user adalah wali kelas)
-    // public function kelasWali() 
-    // {
-    //     return $this->hasOne(Kelas::class, 'wali_kelas_id');
-    // }
 
     // Helper Methods (Opsional)
     public function isSuperAdmin()

@@ -4,14 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon; // Untuk helper nama hari
+use Carbon\Carbon; // Jangan lupa import Carbon
 
 class JadwalPiket extends Model
 {
     use HasFactory;
 
+    // Tentukan nama tabel jika tidak mengikuti konvensi Laravel
     protected $table = 'jadwal_piket';
 
+    // Kolom yang boleh diisi secara massal
     protected $fillable = [
         'user_id',
         'hari_ke',
@@ -20,34 +22,47 @@ class JadwalPiket extends Model
         'keterangan_tugas',
     ];
 
-    protected $casts = [
-        'hari_ke' => 'integer',
-        // jam_mulai & jam_selesai bisa string jika formatnya HH:MM atau HH:MM:SS
-        // atau 'jam_mulai' => 'datetime:H:i', // Hati-hati dengan bagian tanggal jika pakai ini
-    ];
-
+    /**
+     * Relasi ke model User
+     */
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
-
-    // Accessor untuk mendapatkan nama hari
-    public function getNamaHariAttribute(): string
+    
+    /**
+     * Mendapatkan nama hari dari angka hari_ke.
+     */
+    public function getNamaHariAttribute()
     {
         $days = [
-            1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
-            5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu'
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
         ];
-        return $days[$this->hari_ke] ?? 'Tidak Valid';
+        return $days[$this->hari_ke] ?? 'Tidak Diketahui';
     }
 
-    // Helper statis untuk nama hari (bisa dipanggil dari view tanpa objek)
-    public static function getDayNameFromNumber(int $dayNumber): string
+    /**
+     * ACCESSOR: Format jam_mulai saat diakses
+     * Ini akan mengubah '08:30:00' menjadi '08:30'
+     */
+    public function getJamMulaiFormattedAttribute()
     {
-        $days = [
-            1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
-            5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu'
-        ];
-        return $days[$dayNumber] ?? 'Tidak Valid';
+        // Cek jika jam_mulai tidak null sebelum memformat
+        return $this->jam_mulai ? Carbon::parse($this->jam_mulai)->format('H:i') : '-';
+    }
+
+    /**
+     * ACCESSOR: Format jam_selesai saat diakses
+     */
+    public function getJamSelesaiFormattedAttribute()
+    {
+        // Cek jika jam_selesai tidak null sebelum memformat
+        return $this->jam_selesai ? Carbon::parse($this->jam_selesai)->format('H:i') : '-';
     }
 }

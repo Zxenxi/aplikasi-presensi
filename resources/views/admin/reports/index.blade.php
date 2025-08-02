@@ -1,7 +1,8 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="p-4 sm:p-6 lg:p-8 space-y-6">
+    {{-- <div class="p-4 sm:p-6 lg:p-8 space-y-6"> --}}
+    <div x-data="{ showModal: false, modalImageUrl: '' }" class="p-4 sm:p-6 lg:p-8 space-y-6">
         {{-- Judul Halaman --}}
         <div class="mb-6">
             <h1 class="text-2xl font-semibold text-gray-800">Laporan Presensi</h1>
@@ -73,7 +74,28 @@
                     <input type="text" id="search_user_name" name="search_user_name"
                         value="{{ $filters['search_user_name'] ?? '' }}" class="form-input" placeholder="Cari nama...">
                 </div>
+                {{-- MODAL UNTUK MENAMPILKAN GAMBAR --}}
+                <div x-show="showModal" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" @keydown.escape.window="showModal = false"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+                    style="display: none;">
 
+                    {{-- Latar belakang modal, klik di sini untuk menutup --}}
+                    <div @click="showModal = false" class="absolute inset-0"></div>
+
+                    {{-- Konten Modal --}}
+                    <div class="relative bg-white rounded-lg shadow-xl max-w-2xl max-h-full">
+                        <img :src="modalImageUrl" alt="Selfie Presensi" class="object-contain rounded-lg max-h-[90vh]">
+
+                        {{-- Tombol Close --}}
+                        <button @click="showModal = false"
+                            class="absolute -top-3 -right-3 flex items-center justify-center w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none">
+                            &times;
+                        </button>
+                    </div>
+                </div>
                 {{-- Tombol Submit --}}
                 <div class="col-span-12 sm:col-span-2 md:col-span-1 ">
                     <button type="submit"
@@ -138,7 +160,8 @@
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role
                                 </th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Kelas
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam
                                     Masuk</th>
@@ -191,12 +214,25 @@
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">
                                         @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
+                                            <button type="button"
+                                                @click="modalImageUrl = '{{ Storage::url($att->selfie_path) }}'; showModal = true"
+                                                class="focus:outline-none">
+                                                <img src="{{ Storage::url($att->selfie_path) }}" alt="Lihat Selfie"
+                                                    class="w-10 h-10 object-cover rounded-full shadow-md inline-block cursor-pointer transition-transform duration-200 hover:scale-110"
+                                                    loading="lazy">
+                                            </button>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    {{-- <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 text-center">                                       
+                                        @if ($att->selfie_path && Storage::disk('public')->exists($att->selfie_path))
                                             <img src="{{ Storage::url($att->selfie_path) }}" alt="Selfie"
                                                 class="w-8 h-8 object-cover rounded-full shadow inline-block" loading="lazy">
                                         @else
                                             -
                                         @endif
-                                    </td>
+                                    </td> --}}
                                     <td class="px-4 py-2 whitespace-nowrap text-sm">
                                         @if (is_null($att->is_location_valid))
                                             <span class="status-badge badge-gray">N/A</span>
