@@ -67,6 +67,23 @@
             </form>
         </div>
 
+        {{-- Pop up sukses jika berhasil menambah pengguna --}}
+        @if (session('success'))
+            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2500)" x-show="show"
+                x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
+                x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
+                class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none" style="min-height: 120px;">
+                <div
+                    class="bg-white border border-green-200 rounded-xl shadow-lg px-6 py-4 flex items-center space-x-3 pointer-events-auto">
+                    <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span class="text-green-700 font-semibold text-base">{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
         {{-- Tabel Pengguna --}}
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">

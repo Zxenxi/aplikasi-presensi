@@ -71,7 +71,7 @@ Route::middleware(['auth'])->group(function () {
              return redirect()->route('admin.dashboard');
         }
         if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini
-             return redirect()->route('attendance.history');
+             return redirect()->route('attendance.create');
         }
         // Tampilkan view dashboard default jika tidak cocok role di atas
         return view('dashboard');

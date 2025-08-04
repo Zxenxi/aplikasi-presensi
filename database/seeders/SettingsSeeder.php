@@ -18,12 +18,12 @@ class SettingsSeeder extends Seeder
         Setting::truncate(); 
 
         Setting::create([
-            'school_latitude'        => -6.2000000, // Contoh Latitude Jakarta
-            'school_longitude'       => 106.8166667, // Contoh Longitude Jakarta
+            'school_latitude'        => -7.709829547744618, // Contoh Latitude Jakarta
+            'school_longitude'       => 110.0077382299018, // Contoh Longitude Jakarta
             'allowed_radius_meters'  => 150,
-            'attendance_start_time'  => '06:30:00',
-            'attendance_end_time'    => '16:00:00',
-            'late_threshold_time'    => '07:15:00',
+            'attendance_start_time'  => '06:00:00',
+            'attendance_end_time'    => '23:30:00',
+            'late_threshold_time'    => '23:15:00',
         ]);
     }
 }
