@@ -15,9 +15,6 @@ class KelasController extends Controller
     /**
      * Display a listing of the resource.
      */
-// app/Http/Controllers/Admin/KelasController.php
-    // app/Http/Controllers/Admin/KelasController.php
-  // app/Http/Controllers/Admin/KelasController.php
         public function index(Request $request)
     {
         /** @var \App\Models\User $user */

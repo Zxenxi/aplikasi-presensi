@@ -21,6 +21,14 @@ class AttendanceController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        // Otorisasi: hanya Super Admin dan Guru yang piket hari ini
+        if (!($user && $user instanceof \App\Models\User && $user->isSuperAdmin())) {
+            if (!($user && $user instanceof \App\Models\User && $user->isPetugasPiket())) {
+                abort(403, 'Akses hanya untuk Super Admin atau Guru yang sedang piket hari ini.');
+            }
+        }
+
         $query = Attendance::query()->with(['user']);
 
         // Filter by search (user name)

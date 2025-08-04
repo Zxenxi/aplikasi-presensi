@@ -67,11 +67,21 @@ Route::middleware(['auth'])->group(function () {
         }
 
         // Panggil method role pada $user
-        if ($user->isSuperAdmin() ) { // IDE seharusnya mengenali ini
-             return redirect()->route('admin.dashboard');
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('admin.dashboard');
         }
-        if ($user->isGuru() || $user->isSiswa()) { // IDE seharusnya mengenali ini
-             return redirect()->route('attendance.create');
+        // Jika guru, cek apakah dia petugas piket hari ini
+        if ($user->isGuru()) {
+            if ($user->isPetugasPiket()) {
+                // Guru yang piket hari ini bisa redirect ke dashboard admin
+                return redirect()->route('admin.dashboard');
+            } else {
+                // Guru yang bukan petugas piket diarahkan ke halaman presensi
+                return redirect()->route('attendance.create');
+            }
+        }
+        if ($user->isSiswa()) {
+            return redirect()->route('attendance.create');
         }
         // Tampilkan view dashboard default jika tidak cocok role di atas
         return view('dashboard');

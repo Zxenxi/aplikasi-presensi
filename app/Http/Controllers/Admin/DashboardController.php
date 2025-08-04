@@ -14,6 +14,13 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        // Otorisasi: hanya Super Admin dan Guru yang piket hari ini
+        if (!($user && $user instanceof \App\Models\User && $user->isSuperAdmin())) {
+            if (!($user && $user instanceof \App\Models\User && $user->isPetugasPiket())) {
+                abort(403, 'Akses hanya untuk Super Admin atau Guru yang sedang piket hari ini.');
+            }
+        }
         // --- Data Statistik Umum ---
         $totalSiswa = User::where('role', 'Siswa')->where('is_active', true)->count();
         $totalGuru = User::where('role', 'Guru')->where('is_active', true)->count();
