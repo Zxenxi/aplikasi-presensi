@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
 
             // Manajemen Presensi Manual (Admin & Piket bisa lihat index, CRUD hanya Super Admin via Controller)
             Route::resource('/attendances', AdminAttendanceController::class)->except(['show']);
+            Route::get('/attendances/user/{user}', [AdminAttendanceController::class, 'userHistory'])->name('attendances.user_history');
 
             // Laporan (Admin & Piket bisa lihat & export)
             Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');

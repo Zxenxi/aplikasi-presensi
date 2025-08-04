@@ -222,4 +222,13 @@ class AttendanceController extends Controller
         $attendance->delete();
         return back()->with('success', 'Data presensi berhasil dihapus.');
     }
+
+    public function userHistory(User $user)
+    {
+        $attendances = Attendance::where('user_id', $user->id)
+            ->orderBy('tanggal', 'desc')
+            ->paginate(15);
+
+        return view('admin.attendances.user_history', compact('user', 'attendances'));
+    }
 }

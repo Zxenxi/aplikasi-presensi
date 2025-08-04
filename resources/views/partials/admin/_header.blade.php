@@ -185,8 +185,8 @@
                 {{-- Presensi Manual (untuk Admin & Petugas Piket) --}}
                 @if (Auth::user()->isSuperAdmin() || Auth::user()->isPetugasPiket())
                     <a href="{{ route('admin.attendances.index') }}" title="Manajemen Presensi Manual"
-                        class="top-nav-item flex items-center space-x-2 px-3 py-2 rounded-md text-sm {{ request()->routeIs('admin.attendances*') ? 'active' : '' }}">
-                        <i data-lucide="calendar-check" class="w-4 h-4"></i><span>Kelola Presensi</span>
+                        class="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('admin.attendances*') ? 'active' : '' }}">
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i><span>Kelola Presensi</span>
                     </a>
                 @endif
 

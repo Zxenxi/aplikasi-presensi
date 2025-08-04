@@ -123,7 +123,9 @@
                                 </td>
 
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $att->user->name ?? 'N/A' }}
+                                    <a href="{{ route('admin.attendances.user_history', $att->user) }}" class="text-indigo-600 hover:text-indigo-900" title="Lihat riwayat presensi {{ $att->user->name }}">
+                                        {{ $att->user->name ?? 'N/A' }}
+                                    </a>
                                 </td>
 
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">

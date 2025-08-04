@@ -10,6 +10,7 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Faker\Factory as Faker;
 use InvalidArgumentException; // Import Exception
+use Illuminate\Support\Facades\Storage; // Tambahkan ini
 
 class AttendanceSeeder extends Seeder
 {
@@ -21,10 +22,12 @@ class AttendanceSeeder extends Seeder
         // 1. Hapus data attendance lama
         Attendance::truncate();
 
+        // Hapus semua gambar selfie dummy yang ada
+        Storage::disk('public')->deleteDirectory('selfies');
+        Storage::disk('public')->makeDirectory('selfies');
+
         $faker = Faker::create('id_ID');
-        // $users = User::whereIn('role', ['Guru', 'Siswa'])->get(); // Ambil Guru & Siswa saja
-        // Di AttendanceSeeder.php
-$users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get();
+        $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get();
         $settings = Setting::first();
 
         if (!$settings) {
@@ -65,10 +68,7 @@ $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get
 
 
         // Status pools (sama seperti sebelumnya)
-        $todayStatusPool = array_merge(/*...*/); // Isi seperti sebelumnya
-        $pastStatusPool = array_merge(/*...*/);  // Isi seperti sebelumnya
-         // -- ISI KEMBALI ARRAY STATUS POOL DARI KODE SEBELUMNYA --
-         $todayStatusPool = array_merge(
+        $todayStatusPool = array_merge(
              array_fill(0, 70, 'Hadir'),   // 70% Hadir
              array_fill(0, 15, 'Telat'),   // 15% Telat
              array_fill(0, 5, 'Izin'),    // 5% Izin
@@ -84,26 +84,44 @@ $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get
          );
          // ---------------------------------------------------------
 
+        // Fungsi untuk membuat gambar dummy
+        $createDummyImage = function ($width = 100, $height = 100, $text = 'Selfie') use ($faker) {
+            $image = imagecreatetruecolor($width, $height);
+            $bgColor = imagecolorallocate($image, $faker->numberBetween(100, 200), $faker->numberBetween(100, 200), $faker->numberBetween(100, 200));
+            $textColor = imagecolorallocate($image, 255, 255, 255);
+
+            imagefill($image, 0, 0, $bgColor);
+            $font = 5; // Ukuran font default
+            $textWidth = imagefontwidth($font) * strlen($text);
+            $textHeight = imagefontheight($font);
+            $x = ($width - $textWidth) / 2;
+            $y = ($height - $textHeight) / 2;
+            imagestring($image, $font, $x, $y, $text, $textColor);
+
+            $fileName = 'selfies/' . uniqid() . '.png';
+            $filePath = Storage::disk('public')->path($fileName);
+            imagepng($image, $filePath);
+            imagedestroy($image);
+
+            return $fileName;
+        };
+
 
         // --- Generate Data untuk Hari Ini ---
         $this->command->info("--- Generating attendance for Today ({$today->toDateString()}) ---");
         foreach ($users as $user) {
-            // $this->command->info("Processing user: {$user->id} ({$user->role}) for today..."); // Uncomment untuk detail log
-
             $statusToday = $faker->randomElement($todayStatusPool);
 
             if ($statusToday !== 'Absen') {
                 $jamMasuk = null; $latitude = null; $longitude = null; $isLocationValid = null; $selfiePath = null;
 
                 if ($statusToday === 'Hadir' || $statusToday === 'Telat') {
-                    // Tentukan waktu mulai dan selesai untuk hari ini
                     $startDateTime = $today->copy()->setTimeFrom($attendanceStartTimeConfig);
                     $endDateTime = $today->copy()->setTimeFrom($reasonableEndTimeConfig);
 
-                    // Safety check jika end <= start (seharusnya tidak terjadi dengan logika di atas)
                     if ($endDateTime <= $startDateTime) {
                          $this->command->error("End time ({$endDateTime->toTimeString()}) is not after start time ({$startDateTime->toTimeString()}) for today. Skipping time generation for user {$user->id}.");
-                          $jamMasuk = $startDateTime->format('H:i:s'); // Default ke start time jika error
+                          $jamMasuk = $startDateTime->format('H:i:s');
                           $statusToday = $startDateTime->gt($lateThresholdTimeConfig) ? 'Telat' : 'Hadir';
                     } else {
                          try {
@@ -111,26 +129,22 @@ $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get
                                    $faker->dateTimeBetween($startDateTime, $endDateTime)->getTimestamp()
                               );
                               $jamMasuk = $jamMasukCarbon->format('H:i:s');
-                              // Tentukan ulang status berdasarkan threshold
                               $statusToday = $jamMasukCarbon->gt($lateThresholdTimeConfig) ? 'Telat' : 'Hadir';
                          } catch (InvalidArgumentException $e) {
-                              // Tangkap error spesifik dari Faker
                               $this->command->error("Faker dateTimeBetween error for user {$user->id} today: " . $e->getMessage());
                               $this->command->error("Start: {$startDateTime}, End: {$endDateTime}");
-                              $jamMasuk = $startDateTime->format('H:i:s'); // Default ke start time
+                              $jamMasuk = $startDateTime->format('H:i:s');
                               $statusToday = $startDateTime->gt($lateThresholdTimeConfig) ? 'Telat' : 'Hadir';
                          }
                     }
 
-
-                    // Generate data lokasi dekat sekolah (sama seperti sebelumnya)
                     $latitude = $faker->latitude($settings->school_latitude - 0.001, $settings->school_latitude + 0.001);
                     $longitude = $faker->longitude($settings->school_longitude - 0.001, $settings->school_longitude + 0.001);
                     $isLocationValid = $faker->boolean(85);
-                    $selfiePath = 'dummy/selfie.jpg';
+                    $selfiePath = $createDummyImage(150, 150, $user->name); // Buat gambar dummy
                 }
 
-                Attendance::create([ /* ... data ... */
+                Attendance::create([
                     'user_id' => $user->id,
                     'tanggal' => $today->toDateString(),
                     'jam_masuk' => $jamMasuk,
@@ -151,21 +165,16 @@ $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get
         $startDateForTrend = $today->copy()->subDays(7);
 
         for ($date = $startDateForTrend; $date->lt($today); $date->addDay()) {
-            // $this->command->info("- Processing date: {$date->toDateString()}"); // Uncomment untuk detail log
             foreach ($users as $user) {
-                 // $this->command->info("  Processing user: {$user->id} ({$user->role}) on {$date->toDateString()}"); // Uncomment untuk detail log
-
                 $statusPast = $faker->randomElement($pastStatusPool);
 
                 if ($statusPast !== 'Absen') {
                     $jamMasuk = null; $latitude = null; $longitude = null; $isLocationValid = null; $selfiePath = null;
 
                     if ($statusPast === 'Hadir' || $statusPast === 'Telat') {
-                         // Tentukan waktu mulai dan selesai untuk hari lalu
                          $startDateTimePast = $date->copy()->setTimeFrom($attendanceStartTimeConfig);
-                         $endDateTimePast = $date->copy()->setTimeFrom($pastEndTimeConfig); // Gunakan config yg sudah fix
+                         $endDateTimePast = $date->copy()->setTimeFrom($pastEndTimeConfig);
 
-                         // Safety check jika end <= start
                          if ($endDateTimePast <= $startDateTimePast) {
                               $this->command->error("End time ({$endDateTimePast->toTimeString()}) is not after start time ({$startDateTimePast->toTimeString()}) for date {$date->toDateString()}. Skipping time generation for user {$user->id}.");
                               $jamMasuk = $startDateTimePast->format('H:i:s');
@@ -176,24 +185,22 @@ $users = User::whereIn('role', ['Guru', 'Siswa'])->where('is_active', true)->get
                                         $faker->dateTimeBetween($startDateTimePast, $endDateTimePast)->getTimestamp()
                                    );
                                    $jamMasuk = $jamMasukCarbon->format('H:i:s');
-                                   // Tentukan ulang status berdasarkan threshold
                                    $statusPast = $jamMasukCarbon->gt($lateThresholdTimeConfig) ? 'Telat' : 'Hadir';
                               } catch (InvalidArgumentException $e) {
                                    $this->command->error("Faker dateTimeBetween error for user {$user->id} on {$date->toDateString()}: " . $e->getMessage());
                                    $this->command->error("Start: {$startDateTimePast}, End: {$endDateTimePast}");
-                                   $jamMasuk = $startDateTimePast->format('H:i:s'); // Default ke start time
+                                   $jamMasuk = $startDateTimePast->format('H:i:s');
                                    $statusPast = $startDateTimePast->gt($lateThresholdTimeConfig) ? 'Telat' : 'Hadir';
                               }
                          }
 
-                        // Generate data lokasi (sama seperti sebelumnya)
                         $latitude = $faker->latitude($settings->school_latitude - 0.001, $settings->school_latitude + 0.001);
                         $longitude = $faker->longitude($settings->school_longitude - 0.001, $settings->school_longitude + 0.001);
                         $isLocationValid = $faker->boolean(85);
-                        $selfiePath = 'dummy/selfie.jpg';
+                        $selfiePath = $createDummyImage(150, 150, $user->name); // Buat gambar dummy
                     }
 
-                    Attendance::create([ /* ... data ... */
+                    Attendance::create([
                          'user_id' => $user->id,
                          'tanggal' => $date->toDateString(),
                          'jam_masuk' => $jamMasuk,
