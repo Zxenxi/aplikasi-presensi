@@ -296,31 +296,6 @@
                     // Submit form
                     console.log("Mengirim form presensi...");
                     formEl.submit();
-
-                    // --- Catatan: Jika menggunakan AJAX ---
-                    // const formData = new FormData(formEl);
-                    // fetch(formEl.action, { method: 'POST', body: formData })
-                    //     .then(response => {
-                    //         if (!response.ok) throw new Error('Network response was not ok');
-                    //         return response.json(); // Asumsi controller return JSON
-                    //     })
-                    //     .then(data => {
-                    //         if(data.success) {
-                    //              showStatus(data.message || 'Presensi berhasil!', 'success');
-                    //              // Mungkin redirect atau disable form
-                    //              window.location.href = '{{ route('attendance.history') }}'; // Redirect ke riwayat
-                    //         } else {
-                    //              showStatus(data.message || 'Gagal mencatat presensi.', 'error');
-                    //              setButtonState(true); // Aktifkan lagi jika gagal
-                    //         }
-                    //     })
-                    //     .catch(error => {
-                    //         console.error('Fetch Error:', error);
-                    //         showStatus('Terjadi kesalahan koneksi saat mengirim data.', 'error');
-                    //         setButtonState(true);
-                    //     });
-                    // --- Akhir Catatan AJAX ---
-
                 } catch (error) {
                     console.error("Error saat capture/submit:", error);
                     showStatus('Gagal memproses gambar atau data.', 'error');

@@ -119,10 +119,26 @@
                                                     nama: '{{ addslashes($item->nama_kelas) }}',
                                                     tingkat: {{ $item->tingkat }},
                                                     jurusan: '{{ addslashes($item->jurusan ?? '') }}',
-                                                    jumlahSiswa: {{ $item->students->count() }}  {{-- <<<<<< TAMBAHKAN BARIS INI --}}
+                                                    jumlahSiswa: {{ $item->students->count() }}
                                                 })">
                                                 <i data-lucide="edit-2"></i>
                                             </button>
+
+                                            {{-- Tombol Arsip/Nonaktifkan Kelas --}}
+                                            @if ($item->is_active ?? true)
+                                                <form action="{{ route('admin.classes.deactivateWithStudents', $item) }}"
+                                                    method="POST" class="inline"
+                                                    onsubmit="return confirm('Arsipkan/nonaktifkan kelas dan seluruh siswa?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" title="Arsipkan/Nonaktifkan Kelas"
+                                                        class="action-button text-red-600 hover:text-white hover:bg-red-600">
+                                                        <i data-lucide="archive"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-red-500 font-semibold">Nonaktif</span>
+                                            @endif
 
                                             {{-- Tombol Hapus (Tetap Sama) --}}
                                             <form action="{{ route('admin.classes.destroy', $item) }}" method="POST"

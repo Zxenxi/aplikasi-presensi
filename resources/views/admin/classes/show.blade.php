@@ -5,20 +5,36 @@
     <div class="p-4 sm:p-6 lg:p-8 space-y-6" x-data="classShowPageData()">
 
         {{-- 1. JUDUL HALAMAN & TOMBOL KEMBALI --}}
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-800">Detail Kelas: {{ $kela->nama_kelas }}</h1>
-            <p class="text-sm text-gray-500 mt-1">
-                <span>Tingkat: {{ $kela->tingkat }}</span>
-                <span class="mx-2">|</span>
-                <span>Jurusan: {{ $kela->jurusan ?? '-' }}</span>
-                <span class="mx-2">|</span>
-                <span>
-                    Jumlah Siswa:
-                    <span class="font-medium text-gray-800">{{ $activeStudentCountInClass }}</span>
-                    <span class="text-gray-400">/ {{ $totalStudentCountInClass }}</span>
-                    (Aktif / Total)
-                </span>
-            </p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-800">Detail Kelas: {{ $kela->nama_kelas }}</h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    <span>Tingkat: {{ $kela->tingkat }}</span>
+                    <span class="mx-2">|</span>
+                    <span>Jurusan: {{ $kela->jurusan ?? '-' }}</span>
+                    <span class="mx-2">|</span>
+                    <span>
+                        Jumlah Siswa:
+                        <span class="font-medium text-gray-800">{{ $activeStudentCountInClass }}</span>
+                        <span class="text-gray-400">/ {{ $totalStudentCountInClass }}</span>
+                        (Aktif / Total)
+                    </span>
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if ($kela->is_active ?? true)
+                    <form action="{{ route('admin.classes.deactivateWithStudents', $kela) }}" method="POST"
+                        onsubmit="return confirm('Nonaktifkan kelas dan seluruh siswa?');">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit"
+                            class="btn-danger px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 text-sm font-medium">Nonaktifkan
+                            Kelas & Siswa</button>
+                    </form>
+                @else
+                    <span class="text-red-600 font-semibold">Kelas Nonaktif</span>
+                @endif
+            </div>
         </div>
 
         {{-- 2. NOTIFIKASI --}}
@@ -40,33 +56,34 @@
         @endif
 
 
-        {{-- 3. FORM UTAMA UNTUK AKSI MASSAL --}}
-        {{-- Pastikan form ini tidak tersembunyi oleh kondisi x-show yang salah --}}
-        <form method="POST" action="{{ route('admin.classes.bulkUpdateStudents', $kela) }}">
-            @csrf
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 space-y-6">
 
-                {{-- Filter Tampilan Siswa (Aktif/Tidak Aktif/Semua) --}}
-                <div class="mb-4">
-                    {{-- Form ini hanya untuk reload halaman dengan parameter GET, bukan bagian dari form POST utama --}}
-                    <form method="GET" action="{{ route('admin.classes.show', $kela) }}" id="filterSiswaFormOnPage"
-                        class="flex items-end space-x-2">
-                        {{-- resources/views/admin/classes/show.blade.php --}}
-                        <div>
-                            <label for="status_siswa_filter_select" class="form-label text-sm">Tampilkan Siswa:</label>
-                            <select name="status_siswa" id="status_siswa_filter_select" class="form-select form-select-sm"
-                                onchange="this.form.submit()"> {{-- Cara submit form yang lebih sederhana --}}
-                                <option value="1" {{ $filterStatusSiswa == '1' ? 'selected' : '' }}>Aktif</option>
-                                <option value="0" {{ $filterStatusSiswa == '0' ? 'selected' : '' }}>Tidak Aktif
-                                </option>
-                                <option value="all" {{ $filterStatusSiswa == 'all' ? 'selected' : '' }}>Semua</option>
-                            </select>
-                        </div>
-                    </form>
+        {{-- 3. FILTER STATUS SISWA (GET) --}}
+        <div class="mb-4">
+            <form method="GET" action="{{ route('admin.classes.show', $kela) }}" id="filterSiswaFormOnPage"
+                class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                <div class="flex-grow w-full sm:w-auto">
+                    <label for="status_siswa_filter_select" class="form-label">Tampilkan Siswa:</label>
+                    <select name="status_siswa" id="status_siswa_filter_select" class="form-select"
+                        onchange="this.form.submit()">
+                        <option value="1" {{ $filterStatusSiswa == '1' ? 'selected' : '' }}>Aktif</option>
+                        <option value="0" {{ $filterStatusSiswa == '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                        <option value="all" {{ $filterStatusSiswa == 'all' ? 'selected' : '' }}>Semua</option>
+                    </select>
                 </div>
+            </form>
+        </div>
 
+        {{-- 4. FORM UTAMA UNTUK AKSI MASSAL (dibungkus sampai tabel siswa) --}}
+        {{-- 4. FORM UTAMA UNTUK AKSI MASSAL (hanya membungkus opsi dan tombol massal, tabel di luar) --}}
+        <form method="POST" action="{{ route('admin.classes.bulkUpdateStudents', $kela) }}" id="bulkActionForm"
+            x-ref="bulkActionForm">
+            @csrf
+            <!-- Hidden siswa_ids[] akan diisi oleh JS sebelum submit -->
+            <template x-for="id in selectedSiswaIds" :key="id">
+                <input type="hidden" name="siswa_ids[]" :value="id">
+            </template>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 space-y-6">
                 {{-- Opsi Aksi Massal --}}
-                {{-- Pastikan blok ini tidak tersembunyi --}}
                 <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 pb-4">
                     <div class="flex-grow w-full sm:w-auto">
                         <label for="bulk_action_dropdown" class="form-label">Pilih Aksi Massal:</label>
@@ -78,7 +95,6 @@
                             <option value="move_class">Pindahkan ke Kelas Lain</option>
                         </select>
                     </div>
-
                     <div x-show="selectedBulkAction === 'move_class'" x-transition class="flex-grow w-full sm:w-auto">
                         <label for="target_kelas_dropdown" class="form-label">Pilih Kelas Tujuan:</label>
                         <select name="target_kelas_id" id="target_kelas_dropdown" class="form-select">
@@ -99,75 +115,73 @@
                         Terapkan Aksi ke <span x-text="selectedSiswaIds.length"> </span> Siswa Terpilih
                     </button>
                 </div>
-
-
-                {{-- Tabel Daftar Siswa --}}
-                <h3 class="text-lg font-medium text-gray-700 mb-1">Daftar Siswa di Kelas Ini</h3>
-                @if ($kela->students->count() > 0)
-                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-3 w-10 text-center">
-                                        <input type="checkbox" x-model="selectAll"
-                                            @change="toggleSelectAllDisplayedStudents()"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                    </th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Nama Siswa</th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email</th>
-                                    <th class="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status Akun</th>
-                                    <th class="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi Cepat</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach ($kela->students as $siswa)
-                                    <tr>
-                                        <td class="p-3 text-center">
-                                            <input type="checkbox" name="siswa_ids[]" value="{{ $siswa->id }}"
-                                                x-model="selectedSiswaIds"
-                                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                        </td>
-                                        <td class="p-3 whitespace-nowrap text-sm text-gray-900">{{ $siswa->name }}</td>
-                                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">{{ $siswa->email }}</td>
-                                        <td class="p-3 whitespace-nowrap text-sm text-center">
-                                            @if ($siswa->is_active)
-                                                <span class="status-badge badge-green">Aktif</span>
-                                            @else
-                                                <span class="status-badge badge-red">Tidak Aktif</span>
-                                            @endif
-                                        </td>
-                                        <td class="p-3 whitespace-nowrap text-sm text-center">
-                                            <form action="{{ route('admin.users.toggleStatus', $siswa) }}" method="POST"
-                                                class="inline"
-                                                onsubmit="return confirm('Anda yakin ingin {{ $siswa->is_active ? 'menonaktifkan' : 'mengaktifkan' }} siswa {{ $siswa->name }}?');">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit"
-                                                    title="{{ $siswa->is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}"
-                                                    class="action-button {{ $siswa->is_active ? 'text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100' : 'text-green-500 hover:text-green-700 hover:bg-green-100' }} p-1 rounded">
-                                                    <i data-lucide="{{ $siswa->is_active ? 'user-x' : 'user-check' }}"
-                                                        class="w-4 h-4"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center py-6 text-gray-500">
-                        Tidak ada siswa
-                        {{ strtolower($filterStatusSiswa == '1' ? 'aktif' : ($filterStatusSiswa == '0' ? 'tidak aktif' : '')) }}
-                        yang ditemukan di kelas ini.
-                    </div>
-                @endif
             </div> {{-- akhir .bg-white --}}
+            {{-- Hidden input siswa_ids[] akan diisi via JS --}}
         </form> {{-- Akhir Form Utama --}}
+
+        {{-- Tabel Daftar Siswa --}}
+        <h3 class="text-lg font-medium text-gray-700 mb-1">Daftar Siswa di Kelas Ini</h3>
+        @if ($students->count() > 0)
+            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-3 w-10 text-center">
+                                <input type="checkbox" x-model="selectAll" @change="toggleSelectAllDisplayedStudents()"
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            </th>
+                            <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama Siswa</th>
+                            <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email</th>
+                            <th class="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status Akun</th>
+                            <th class="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi Cepat</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach ($students as $siswa)
+                            <tr>
+                                <td class="p-3 text-center">
+                                    <input type="checkbox" value="{{ $siswa->id }}" x-model="selectedSiswaIds"
+                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                </td>
+                                <td class="p-3 whitespace-nowrap text-sm text-gray-900">{{ $siswa->name }}</td>
+                                <td class="p-3 whitespace-nowrap text-sm text-gray-500">{{ $siswa->email }}</td>
+                                <td class="p-3 whitespace-nowrap text-sm text-center">
+                                    @if ($siswa->is_active)
+                                        <span class="status-badge badge-green">Aktif</span>
+                                    @else
+                                        <span class="status-badge badge-red">Tidak Aktif</span>
+                                    @endif
+                                </td>
+                                <td class="p-3 whitespace-nowrap text-sm text-center">
+                                    <form action="{{ route('admin.users.toggleStatus', $siswa) }}" method="POST"
+                                        class="inline"
+                                        onsubmit="return confirm('Anda yakin ingin {{ $siswa->is_active ? 'menonaktifkan' : 'mengaktifkan' }} siswa {{ $siswa->name }}?');">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            title="{{ $siswa->is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}"
+                                            class="action-button {{ $siswa->is_active ? 'text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100' : 'text-green-500 hover:text-green-700 hover:bg-green-100' }} p-1 rounded">
+                                            <i data-lucide="{{ $siswa->is_active ? 'user-x' : 'user-check' }}"
+                                                class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="text-center py-6 text-gray-500">
+                Tidak ada siswa
+                {{ strtolower($filterStatusSiswa == '1' ? 'aktif' : ($filterStatusSiswa == '0' ? 'tidak aktif' : '')) }}
+                yang ditemukan di kelas ini.
+            </div>
+        @endif
     </div>
 
 @endsection
@@ -175,12 +189,12 @@
 @push('scripts')
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('classShowPageData', () => ({ // Ubah nama komponen data
+            Alpine.data('classShowPageData', () => ({
                 selectedSiswaIds: [],
                 selectAll: false,
                 selectedBulkAction: '',
                 // ID siswa yang ditampilkan (dari PHP)
-                allDisplayedStudentIds: @json($kela->students->pluck('id')->map(fn($id) => (string) $id)),
+                allDisplayedStudentIds: @json($students->pluck('id')->map(fn($id) => (string) $id)),
 
                 toggleSelectAllDisplayedStudents() {
                     this.selectedSiswaIds = [];
@@ -193,13 +207,10 @@
                     // Kode untuk mengontrol tampilan dropdown kelas tujuan berdasarkan pilihan aksi massal
                     const bulkActionSelect = document.getElementById('bulk_action_dropdown');
                     const targetKelasDiv = document.querySelector(
-                        '[x-show="selectedBulkAction === \'move_class\'"]'); // Cari div dengan x-show
+                        '[x-show="selectedBulkAction === \'move_class\'"]');
                     const targetKelasSelect = document.getElementById('target_kelas_dropdown');
 
                     if (bulkActionSelect && targetKelasDiv && targetKelasSelect) {
-                        // Set kondisi awal berdasarkan nilai x-model (selectedBulkAction)
-                        // Alpine akan menangani show/hide div secara otomatis.
-                        // Kita hanya perlu memastikan 'required' pada select target.
                         this.$watch('selectedBulkAction', value => {
                             if (value === 'move_class') {
                                 targetKelasSelect.setAttribute('required', 'required');
@@ -208,12 +219,29 @@
                                 targetKelasSelect.value = '';
                             }
                         });
-                        // Inisialisasi saat load halaman jika old value ada
                         if (this.selectedBulkAction === 'move_class') {
                             targetKelasSelect.setAttribute('required', 'required');
                         } else {
                             targetKelasSelect.removeAttribute('required');
                         }
+                    }
+
+                    // Pastikan hidden siswa_ids[] ikut submit form massal
+                    const form = this.$refs.bulkActionForm;
+                    if (form) {
+                        form.addEventListener('submit', (e) => {
+                            // Hapus input siswa_ids[] lama
+                            form.querySelectorAll('input[name=\'siswa_ids[]\']').forEach(el =>
+                                el.remove());
+                            // Tambahkan input siswa_ids[] baru
+                            this.selectedSiswaIds.forEach(id => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'siswa_ids[]';
+                                input.value = id;
+                                form.appendChild(input);
+                            });
+                        });
                     }
 
                     this.$nextTick(() => {

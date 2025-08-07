@@ -13,6 +13,20 @@ use Illuminate\Support\Facades\Log;
 class KelasController extends Controller
 {
     /**
+     * Nonaktifkan kelas beserta seluruh siswa di kelas tersebut
+     */
+    public function deactivateWithStudents($id)
+    {
+        $kelas = Kelas::findOrFail($id);
+        $kelas->is_active = false;
+        $kelas->save();
+
+        // Nonaktifkan semua siswa di kelas ini
+        \App\Models\User::where('kelas_id', $kelas->id)->update(['is_active' => false]);
+
+        return redirect()->route('admin.classes.show', $kelas)->with('success', 'Kelas dan seluruh siswa telah dinonaktifkan.');
+    }
+    /**
      * Display a listing of the resource.
      */
         public function index(Request $request)
@@ -197,26 +211,24 @@ class KelasController extends Controller
         abort(403, 'Akses Ditolak');
     }
 
-    $filterStatusSiswa = $request->input('status_siswa', '1');
+    $filterStatusSiswa = $request->input('status_siswa', '1'); // '1'=aktif, '0'=nonaktif, 'all'=semua
 
-    $kela->load(['students' => function ($query) use ($filterStatusSiswa) {
-        $query->where('role', 'Siswa');
+    // Ambil siswa sesuai filter
+    $studentsQuery = User::where('kelas_id', $kela->id)
+        ->where('role', 'Siswa');
+    if ($filterStatusSiswa === '1') {
+        $studentsQuery->where('is_active', true);
+    } elseif ($filterStatusSiswa === '0') {
+        $studentsQuery->where('is_active', false);
+    } // jika 'all', tidak filter is_active
+    $students = $studentsQuery->orderBy('name')->get();
 
-        if ($filterStatusSiswa === '1') {
-            $query->where('is_active', true);
-        } elseif ($filterStatusSiswa === '0') {
-            $query->where('is_active', false);
-        }
-        // Jika 'all', tidak ada filter is_active yang diterapkan
-        
-        $query->orderBy('name');
-    }]);
-    
-    $activeStudentCountInClass = User::where('kelas_id', $kela->id)->where('is_active', true)->count();
-    $totalStudentCountInClass = User::where('kelas_id', $kela->id)->count();
+    // Hitung jumlah siswa aktif dan total siswa di kelas
+    $activeStudentCountInClass = User::where('kelas_id', $kela->id)->where('role', 'Siswa')->where('is_active', true)->count();
+    $totalStudentCountInClass = User::where('kelas_id', $kela->id)->where('role', 'Siswa')->count();
     $allKelas = Kelas::where('id', '!=', $kela->id)->orderBy('nama_kelas')->get();
 
-    return view('admin.classes.show', compact('kela', 'allKelas', 'filterStatusSiswa', 'activeStudentCountInClass', 'totalStudentCountInClass'));
+    return view('admin.classes.show', compact('kela', 'allKelas', 'filterStatusSiswa', 'activeStudentCountInClass', 'totalStudentCountInClass', 'students'));
 }
 
      public function bulkUpdateStudents(Request $request, Kelas $kela)
@@ -234,6 +246,12 @@ class KelasController extends Controller
         ],[
             'bulk_action.required' => 'Aksi massal harus dipilih.',
             'siswa_ids.required' => 'Tidak ada siswa yang dipilih.',
+        ]);
+
+        // DEBUG LOG
+        Log::info('Bulk update siswa', [
+            'bulk_action' => $validated['bulk_action'],
+            'siswa_ids' => $validated['siswa_ids'],
         ]);
 
         $siswaIds = $validated['siswa_ids'];
@@ -271,7 +289,10 @@ class KelasController extends Controller
             }
             DB::commit();
             $actionFriendlyName = ucfirst(str_replace('_', ' ', $action));
-            return back()->with('success', "$updatedCount siswa berhasil diproses dengan aksi: " . $actionFriendlyName . ".");
+            // Redirect ke filter yang sesuai setelah aksi massal
+            $redirectFilter = $action === 'activate' ? '1' : ($action === 'deactivate' ? '0' : 'all');
+            return redirect()->route('admin.classes.show', [$kela, 'status_siswa' => $redirectFilter])
+                ->with('success', "$updatedCount siswa berhasil diproses dengan aksi: " . $actionFriendlyName . ".");
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Kesalahan saat aksi massal siswa: ' . $e->getMessage() . ' - File: ' . $e->getFile() . ' - Baris: ' . $e->getLine());

@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
 
             // --- Grup Rute Khusus Super Admin ---
             // Hanya Super Admin yang bisa mengakses route di dalam grup ini
+           Route::patch('/classes/{kela}/deactivate-with-students', [\App\Http\Controllers\Admin\KelasController::class, 'deactivateWithStudents'])->name('classes.deactivateWithStudents');
             Route::middleware('role:Super Admin')->group(function () {
                 // User Management
                 Route::resource('/users', AdminUserController::class);
