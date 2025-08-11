@@ -20,10 +20,50 @@ class UserSeeder extends Seeder
 
         // === Buat User Guru ===
         $this->command->info('Memulai Seeder Guru...');
-        for ($i = 0; $i < 15; $i++) { // Buat 15 guru
+        $guruList = [
+            'SETYAWAN ARI RESPATI, S.Pd',
+            'KUKUH YOGA GANJAR SUTARWAN, S.Pd',
+            'TRI WINARSI',
+            'DWI KRISTIASIH, S.Pd',
+            'PRABANTORO SAPUTRO, S.Pd',
+            'DIKA SRI VANIARI',
+            'ENDANG WAHYUNINGSIH, Apt. M. Kes.',
+            'SULISTYOWATI, S.Pd',
+            'MAYDA ADRIYANTI, S.Pd',
+            'LISA PRASTIYANTI, S.E.',
+            'DYAH SIWI R, S.E.',
+            'CAHYANING RATRI, S.Pd',
+            'WIDAYANTI, S.Pd',
+            'Apt. AGUSTA ARI MURTI KRISTYANTI, M.Farm.',
+            'FIRMANSAH AL FATONI',
+            'Apt. FRANSISCA INDAH PRATIWI, M.Farm.',
+            'DRA. SUHARTATI',
+            'CHRISTIANA YUSI WULANDARI, S.Pd',
+            'PUJI WALUYO, S.Kom.',
+            'DRS. DIDIK HADI PRAYITNO',
+            'CATARINA SEGIHARNI, S.Pd',
+            'SRI WENING ARIANI, S.Pd',
+            'WATINI',
+            'ENI MURNIATI, S.E.',
+            'MARIA SUCI DEWI LESTARI, SE., S.Pd',
+            'HERIYANTO',
+            'EKO PRASTOWO',
+            'PURNOMO',
+        ];
+        $usedEmails = [];
+        foreach ($guruList as $idx => $namaGuru) {
+            $namaDepan = strtolower(preg_replace('/[^a-zA-Z]/', '', explode(' ', $namaGuru)[0]));
+            $emailBase = $namaDepan;
+            $email = $emailBase . '@gmail.com';
+            $counter = 1;
+            while (in_array($email, $usedEmails)) {
+                $email = $emailBase . $counter . '@gmail.com';
+                $counter++;
+            }
+            $usedEmails[] = $email;
             User::create([
-                'name' => 'Guru ' . $faker->firstName() . ' ' . $faker->lastName(),
-                'email' => "guru" . ($i + 1) . "@example.com",
+                'name' => $namaGuru,
+                'email' => $email,
                 'email_verified_at' => now(),
                 'role' => 'Guru',
                 'kelas_id' => null, // Guru tidak punya kelas_id
@@ -39,18 +79,26 @@ class UserSeeder extends Seeder
         // === Buat User Siswa ===
         $this->command->info('Memulai Seeder Siswa...');
 
+        $siswaList = [
+            'YOLANDA APRILIA KACARIBU',
+            'Nanda Alief Sahara Ramadhan',
+            'LAURA BADRIANI',
+            'MILANIA ZALIKA SILOVESKY',
+            'Jelita Siahaan',
+            'Gresia Kurniasari',
+            'Mei Sumi Rahayu',
+            'Rocinta Br Gultom',
+        ];
+
         if (empty($kelasIds)) {
             $this->command->warn('PERINGATAN: Tidak ada data Kelas ditemukan. Seeder Siswa akan dilewati.');
         } else {
-            $targetTotalSiswa = 50; // Target total siswa yang ingin dibuat
-            $this->command->info("Target: Membuat {$targetTotalSiswa} siswa...");
-
-            for ($s = 0; $s < $targetTotalSiswa; $s++) {
+            foreach ($siswaList as $idx => $namaSiswa) {
                 $randomKelasId = $faker->randomElement($kelasIds);
-                $uniqueSuffix = uniqid();
+                $email = 'siswa' . ($idx + 1) . '@example.com';
                 User::create([
-                    'name' => $faker->firstName() . ' ' . $faker->lastName(),
-                    'email' => "siswa{$randomKelasId}_{$s}_{$uniqueSuffix}@example.com",
+                    'name' => $namaSiswa,
+                    'email' => $email,
                     'email_verified_at' => now(),
                     'role' => 'Siswa',
                     'kelas_id' => $randomKelasId,
@@ -58,7 +106,7 @@ class UserSeeder extends Seeder
                     'remember_token' => \Illuminate\Support\Str::random(10),
                 ]);
             }
-            $this->command->info("-> Seeder Siswa selesai. {$targetTotalSiswa} siswa telah dibuat.");
+            $this->command->info('-> Seeder Siswa selesai. ' . count($siswaList) . ' siswa telah dibuat.');
         }
 
         // === Buat User Admin ===

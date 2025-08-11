@@ -13,30 +13,12 @@ class KelasSeeder extends Seeder
      */
     public function run(): void
     {
-        // Data kelas sudah bagus, tidak perlu diubah
         $kelasData = [
-            // Tingkat 10
-            ['nama_kelas' => 'IPA 1', 'tingkat' => 10, 'jurusan' => 'IPA'],
-            ['nama_kelas' => 'IPA 2', 'tingkat' => 10, 'jurusan' => 'IPA'],
-            ['nama_kelas' => 'IPS 1', 'tingkat' => 10, 'jurusan' => 'IPS'],
-            ['nama_kelas' => 'IPS 2', 'tingkat' => 10, 'jurusan' => 'IPS'],
-            ['nama_kelas' => 'Bahasa', 'tingkat' => 10, 'jurusan' => 'Bahasa'],
-            // Tingkat 11
-            ['nama_kelas' => 'IPA 1', 'tingkat' => 11, 'jurusan' => 'IPA'],
-            ['nama_kelas' => 'IPA 2', 'tingkat' => 11, 'jurusan' => 'IPA'],
-            ['nama_kelas' => 'IPS 1', 'tingkat' => 11, 'jurusan' => 'IPS'],
-            ['nama_kelas' => 'IPS 2', 'tingkat' => 11, 'jurusan' => 'IPS'],
-            ['nama_kelas' => 'Bahasa', 'tingkat' => 11, 'jurusan' => 'Bahasa'],
-             // Tingkat 12
-             ['nama_kelas' => 'IPA 1', 'tingkat' => 12, 'jurusan' => 'IPA'],
-             ['nama_kelas' => 'IPA 2', 'tingkat' => 12, 'jurusan' => 'IPA'],
-             ['nama_kelas' => 'IPS 1', 'tingkat' => 12, 'jurusan' => 'IPS'],
-             ['nama_kelas' => 'IPS 2', 'tingkat' => 12, 'jurusan' => 'IPS'],
-            ['nama_kelas' => 'Bahasa', 'tingkat' => 12, 'jurusan' => 'Bahasa'],
+            ['nama_kelas' => '11 TJKT', 'tingkat' => 11, 'jurusan' => 'TJKT'],
+            ['nama_kelas' => '11 Farmasi', 'tingkat' => 11, 'jurusan' => 'Farmasi'],
         ];
 
         foreach ($kelasData as $kelas) {
-            // Pastikan tidak ada 'wali_kelas_id' di sini
             Kelas::create([
                 'nama_kelas' => $kelas['nama_kelas'],
                 'tingkat' => $kelas['tingkat'],
