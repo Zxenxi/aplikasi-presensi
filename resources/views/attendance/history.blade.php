@@ -114,7 +114,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                                     {{-- Tampilan Koordinat sama --}}
                                     @if ($att->latitude && $att->longitude)
-                                        {{ number_format($att->latitude, 5) }}, {{ number_format($att->longitude, 5) }}
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ $att->latitude }},{{ $att->longitude }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                            {{ number_format($att->latitude, 5) }}, {{ number_format($att->longitude, 5) }}
+                                        </a>
                                     @else
                                         -
                                     @endif

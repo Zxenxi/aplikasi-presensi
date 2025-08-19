@@ -17,14 +17,14 @@
                     {{-- ... (bagian atas form) ... --}}
 
                     {{-- Keterangan/Remarks --}}
-                    <div>
+                    {{-- <div>
                         <label for="remarks" class="form-label">Keterangan/Catatan (Opsional)</label>
                         <textarea id="remarks" name="remarks" rows="3" class="form-input @error('remarks') border-red-500 @enderror"
                             placeholder="Contoh: Izin disetujui via surat, Sakit berdasarkan info wali kelas, dll.">{{ old('remarks', $attendance->remarks ?? $attendance->keterangan) }}</textarea>
                         @error('remarks')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     {{-- Info siapa yang terakhir update --}}
                     @if ($attendance->updatedBy)
@@ -114,7 +114,15 @@
                             {{ is_null($attendance->is_location_valid) ? 'N/A' : ($attendance->is_location_valid ? 'Valid' : 'Tidak Valid') }}
                         </p>
                         <p>Koordinat:
-                            {{ $attendance->latitude ? number_format($attendance->latitude, 5) . ', ' . number_format($attendance->longitude, 5) : '-' }}
+                            @if ($attendance->latitude && $attendance->longitude)
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ $attendance->latitude }},{{ $attendance->longitude }}"
+                                    target="_blank" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                    {{ number_format($attendance->latitude, 5) }},
+                                    {{ number_format($attendance->longitude, 5) }}
+                                </a>
+                            @else
+                                -
+                            @endif
                         </p>
                     </div>
 
@@ -122,15 +130,10 @@
                     {{-- Tombol Aksi --}}
                     <div class="flex justify-end space-x-3 pt-4 border-t">
                         <a href="{{ route('admin.attendances.index') }}" class="btn-secondary">Batal</a>
-                        {{-- Tombol Simpan dengan state loading --}}
-                        {{-- <button type="submit" x-data="{ submitting: false }" x-on:click="submitting = true" :disabled="submitting"
-                            class="btn-primary">
-                            <svg x-show="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">...</svg>
-                            <span x-text="submitting ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
-                        </button> --}}
-                        <button type="submit" class="btn-primary ...">
-                            Simpan Pengguna
+                        <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                           btn-primary ...">
+                            Simpan Perubahan
                         </button>
                     </div>
                 </form>

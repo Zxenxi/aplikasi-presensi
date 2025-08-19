@@ -150,48 +150,153 @@ function presensiAppData() {
             // Sebaiknya reset form saat modal ditutup, atau minimal saat dibuka untuk create
             // this.resetCurrentClass(); // Anda bisa uncomment ini jika ingin reset saat tutup
         },
+        // In resources/js/app.js
+
+        // ... other functions ...
 
         // Fungsi yang dipanggil saat form modal di-submit
         saveClass() {
             console.log("Submitting class form via Fetch...");
             const form = document.getElementById("classModalForm");
-            const formData = new FormData(form);
-            const url = form.action;
-            const method = document.getElementById('classModalMethod').value;
+            const method = this.isEditingClass ? "PUT" : "POST";
+            const url = this.isEditingClass
+                ? `/admin/classes/${this.currentClass.id}`
+                : "/admin/classes";
 
             // Clear previous errors
-            document.getElementById('nama_kelas_error').textContent = '';
-            document.getElementById('nama_kelas').classList.remove('border-red-500');
+            const errorElement = document.getElementById("nama_kelas_error");
+            const inputElement = document.getElementById("nama_kelas");
+            errorElement.textContent = "";
+            inputElement.classList.remove("border-red-500");
+
+            // Get the CSRF token from the meta tag (make sure you have this in your main layout)
+            // <meta name="csrf-token" content="{{ csrf_token() }}">
+            const csrfToken = document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute("content");
 
             fetch(url, {
                 method: method,
                 headers: {
-                    'X-CSRF-TOKEN': formData.get('_token'),
-                    'Accept': 'application/json',
+                    "X-CSRF-TOKEN": csrfToken,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
                 },
-                body: formData
+                // Send only the necessary data from the Alpine state
+                body: JSON.stringify({
+                    nama_kelas: this.currentClass.nama,
+                    tingkat: this.currentClass.tingkat,
+                    jurusan: this.currentClass.jurusan,
+                }),
             })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else if (response.status === 422) {
-                    return response.json().then(data => {
-                        if (data.errors && data.errors.nama_kelas) {
-                            const errorElement = document.getElementById('nama_kelas_error');
-                            const inputElement = document.getElementById('nama_kelas');
-                            errorElement.textContent = data.errors.nama_kelas[0];
-                            inputElement.classList.add('border-red-500');
+                .then((response) => {
+                    // We need the JSON body regardless of success or failure
+                    return response
+                        .json()
+                        .then((data) => ({
+                            status: response.status,
+                            body: data,
+                        }));
+                })
+                .then(({ status, body }) => {
+                    if (status === 422) {
+                        // Validation Error
+                        console.error("Validation failed:", body.errors);
+                        if (body.errors && body.errors.nama_kelas) {
+                            errorElement.textContent =
+                                body.errors.nama_kelas[0];
+                            inputElement.classList.add("border-red-500");
                         }
-                    });
-                } else {
-                    // Handle other errors
-                    console.error('An unexpected error occurred.');
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
+                        // You can add handling for other fields here if needed
+                    } else if (status >= 200 && status < 300) {
+                        // Success
+                        console.log("Success:", body.success);
+                        // On success, close the modal and reload the page to see the changes
+                        this.closeClassModal();
+                        window.location.reload();
+                    } else {
+                        // Other server errors (403, 500, etc.)
+                        console.error(
+                            "An unexpected error occurred:",
+                            body.message
+                        );
+                        // Optionally, show a generic error message to the user
+                        alert(
+                            "Terjadi kesalahan pada server. Silakan coba lagi."
+                        );
+                    }
+                })
+                .catch((error) => {
+                    console.error("Fetch error:", error);
+                    alert(
+                        "Tidak dapat terhubung ke server. Periksa koneksi Anda."
+                    );
+                });
         },
+
+        // ... rest of your Alpine component ...
+        // Fungsi yang dipanggil saat form modal di-submit
+        // saveClass() {
+        //     console.log("Submitting class form via Fetch...");
+        //     const form = document.getElementById("classModalForm");
+        //     const method = document.getElementById('classModalMethod').value;
+
+        //     let url;
+        //     if (this.isEditingClass) {
+        //         url = `/admin/classes/${this.currentClass.id}`;
+        //     } else {
+        //         url = '/admin/classes';
+        //     }
+
+        //     // Data to be sent as JSON
+        //     const requestData = {
+        //         _token: document.querySelector('input[name="_token"]').value,
+        //         nama_kelas: this.currentClass.nama,
+        //         tingkat: this.currentClass.tingkat,
+        //         jurusan: this.currentClass.jurusan,
+        //     };
+
+        //     // If it's an update (PUT), include the _method field for Laravel's method spoofing
+        //     // Although for JSON, Laravel often infers method from the actual HTTP method,
+        //     // including _method can be a good fallback for consistency.
+        //     if (method === 'PUT') {
+        //         requestData._method = 'PUT';
+        //     }
+
+        //     // Clear previous errors
+        //     document.getElementById('nama_kelas_error').textContent = '';
+        //     document.getElementById('nama_kelas').classList.remove('border-red-500');
+
+        //     fetch(url, {
+        //         method: method, // Use the actual HTTP method (POST or PUT)
+        //         headers: {
+        //             'X-CSRF-TOKEN': requestData._token, // Get CSRF token from the data object
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json', // Crucial for sending JSON
+        //         },
+        //         body: JSON.stringify(requestData) // Send data as JSON string
+        //     })
+        //     .then(response => {
+        //         if (response.ok) {
+        //             window.location.reload();
+        //         } else if (response.status === 422) {
+        //             return response.json().then(data => {
+        //                 if (data.errors && data.errors.nama_kelas) {
+        //                     const errorElement = document.getElementById('nama_kelas_error');
+        //                     const inputElement = document.getElementById('nama_kelas');
+        //                     errorElement.textContent = data.errors.nama_kelas[0];
+        //                     inputElement.classList.add('border-red-500');
+        //                 }
+        //             });
+        //         } else {
+        //             // Handle other errors
+        //             console.error('An unexpected error occurred.');
+        //         }
+        //     })
+        //     .catch(error => {
+        //         console.error('Fetch error:', error);
+        //     });
+        // },
 
         // ... (sisa fungsi Alpine lainnya jika ada) ...
     };

@@ -78,7 +78,20 @@
             </div>
         @endif
         @if (session('error'))
-            {{-- ... kode notifikasi ... --}}
+            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 2500)" x-show="show"
+                x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
+                x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
+                class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none" style="min-height: 120px;">
+                <div
+                    class="bg-white border border-red-200 rounded-xl shadow-lg px-6 py-4 flex items-center space-x-3 pointer-events-auto">
+                    <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span class="text-red-700 font-semibold text-base">{{ session('error') }}</span>
+                </div>
+            </div>
         @endif
         @if ($errors->any())
             {{-- ... kode notifikasi ... --}}
