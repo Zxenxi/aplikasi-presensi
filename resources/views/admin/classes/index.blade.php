@@ -125,20 +125,32 @@
                                             </button>
 
                                             {{-- Tombol Arsip/Nonaktifkan Kelas --}}
-                                            @if ($item->is_active ?? true)
-                                                <form action="{{ route('admin.classes.deactivateWithStudents', $item) }}"
-                                                    method="POST" class="inline"
-                                                    onsubmit="return confirm('Arsipkan/nonaktifkan kelas dan seluruh siswa?');">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" title="Arsipkan/Nonaktifkan Kelas"
-                                                        class="action-button text-red-600 hover:text-white hover:bg-red-600">
-                                                        <i data-lucide="archive"></i>
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="text-xs text-red-500 font-semibold">Nonaktif</span>
-                                            @endif
+                                            <form action="{{ route('admin.classes.deactivateWithStudents', $item) }}"
+                                                method="POST" class="inline"
+                                                onsubmit="return confirm('Arsipkan/nonaktifkan kelas dan seluruh siswa?');">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" title="Arsipkan/Nonaktifkan Kelas"
+                                                    class="action-button text-red-600 hover:text-white hover:bg-red-600">
+                                                    <i data-lucide="archive"></i>
+                                                </button>
+                                            </form>
+
+                                            {{-- Tombol Aktifkan Semua Siswa --}}
+                                            <form action="{{ route('admin.classes.bulkUpdateStudents', $item) }}"
+                                                method="POST" class="inline"
+                                                onsubmit="return confirm('Aktifkan semua siswa di kelas ini?');">
+                                                @csrf
+                                                <input type="hidden" name="bulk_action" value="activate">
+                                                @foreach ($item->students->where('is_active', false) as $siswa)
+                                                    <input type="hidden" name="siswa_ids[]" value="{{ $siswa->id }}">
+                                                @endforeach
+                                                <button type="submit" title="Aktifkan Semua Siswa"
+                                                    class="action-button text-green-600 hover:text-white hover:bg-green-600"
+                                                    @if ($item->students->where('is_active', false)->count() == 0) disabled @endif>
+                                                    <i data-lucide="user-check"></i>
+                                                </button>
+                                            </form>
 
                                             {{-- Tombol Hapus (Tetap Sama) --}}
                                             <form action="{{ route('admin.classes.destroy', $item) }}" method="POST"

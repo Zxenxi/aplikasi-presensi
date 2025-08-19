@@ -24,7 +24,6 @@
                                 <span>Dashboard</span>
                             </a>
                         @endif
-
                         {{-- Pengguna (HANYA untuk Super Admin) --}}
                         @if (Auth::user()->isSuperAdmin())
                             <a href="{{ route('admin.users.index') }}"
@@ -230,7 +229,6 @@
                         <i data-lucide="log-out" class="w-5 h-5 mr-2"></i>Keluar
                     </a>
                 </form>
-
             </div>
         </div>
     </div>

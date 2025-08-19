@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Kelas;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\User; // Untuk ambil data guru
@@ -76,10 +77,26 @@ class KelasController extends Controller
             abort(403, 'Akses Ditolak');
         }
 
+        Log::info('Validating class creation', [
+            'nama_kelas' => $request->nama_kelas,
+            'tingkat' => $request->tingkat,
+            'jurusan' => $request->jurusan,
+        ]);
+
         $validated = $request->validate([
-            'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas',
+            'nama_kelas' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('kelas')->where(function ($query) use ($request) {
+                    return $query->where('jurusan', $request->jurusan)
+                                 ->where('tingkat', $request->tingkat);
+                }),
+            ],
             'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
+        ], [
+            'nama_kelas.unique' => 'Kombinasi nama kelas, tingkat, dan jurusan sudah ada. Silakan gunakan nama yang berbeda.',
         ]);
 
 
@@ -101,11 +118,27 @@ class KelasController extends Controller
              abort(403, 'Akses Ditolak');
         }
 
+        Log::info('Validating class update', [
+            'nama_kelas' => $request->nama_kelas,
+            'tingkat' => $request->tingkat,
+            'jurusan' => $request->jurusan,
+        ]);
+
         $validated = $request->validate([
-            'nama_kelas' => 'required|string|max:255|unique:kelas,nama_kelas,' . $kela->id,
+            'nama_kelas' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('kelas')->where(function ($query) use ($request) {
+                    return $query->where('jurusan', $request->jurusan)
+                                 ->where('tingkat', $request->tingkat);
+                })->ignore($kela->id),
+            ],
             'tingkat' => 'required|integer|min:1|max:12',
             'jurusan' => 'nullable|string|max:100',
             // 'wali_kelas_id' => 'nullable|exists:users,id',
+        ], [
+            'nama_kelas.unique' => 'Kombinasi nama kelas, tingkat, dan jurusan sudah ada. Silakan gunakan nama yang berbeda.',
         ]);
 
         $kela->update($validated);
@@ -240,18 +273,22 @@ class KelasController extends Controller
         }
 
         $validated = $request->validate([
-            'bulk_action' => 'required|string|in:activate,deactivate',
+            'bulk_action' => 'required|string|in:activate,deactivate,move_class',
             'siswa_ids' => 'required|array',
             'siswa_ids.*' => 'exists:users,id',
+            'target_kelas_id' => 'required_if:bulk_action,move_class|exists:kelas,id',
         ],[
             'bulk_action.required' => 'Aksi massal harus dipilih.',
             'siswa_ids.required' => 'Tidak ada siswa yang dipilih.',
+            'target_kelas_id.required_if' => 'Kelas tujuan harus dipilih untuk aksi pindah kelas.',
+            'target_kelas_id.exists' => 'Kelas tujuan tidak valid.',
         ]);
 
         // DEBUG LOG
         Log::info('Bulk update siswa', [
             'bulk_action' => $validated['bulk_action'],
             'siswa_ids' => $validated['siswa_ids'],
+            'target_kelas_id' => $request->target_kelas_id,
         ]);
 
         $siswaIds = $validated['siswa_ids'];
@@ -270,6 +307,15 @@ class KelasController extends Controller
                 return back()->with('warning', 'Tidak ada siswa valid yang ditemukan untuk diproses dari kelas ini.');
             }
 
+            $targetKelas = null;
+            if ($action === 'move_class') {
+                $targetKelas = Kelas::find($validated['target_kelas_id']);
+                if (!$targetKelas) {
+                    DB::rollBack();
+                    return back()->with('error', 'Kelas tujuan tidak ditemukan.');
+                }
+            }
+
             foreach ($studentsToUpdate as $siswa) {
                 switch ($action) {
                     case 'activate':
@@ -285,10 +331,20 @@ class KelasController extends Controller
                         $siswa->save();
                         $updatedCount++;
                         break;
+                    case 'move_class':
+                        $siswa->kelas_id = $targetKelas->id;
+                        $siswa->save();
+                        $updatedCount++;
+                        break;
                 }
             }
             DB::commit();
+            
             $actionFriendlyName = ucfirst(str_replace('_', ' ', $action));
+            if ($action === 'move_class' && $targetKelas) {
+                 return redirect()->route('admin.classes.show', $kela)->with('success', "$updatedCount siswa berhasil dipindahkan ke kelas {$targetKelas->nama_kelas}.");
+            }
+
             // Redirect ke filter yang sesuai setelah aksi massal
             $redirectFilter = $action === 'activate' ? '1' : ($action === 'deactivate' ? '0' : 'all');
             return redirect()->route('admin.classes.show', [$kela, 'status_siswa' => $redirectFilter])

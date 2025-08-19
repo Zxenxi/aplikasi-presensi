@@ -153,20 +153,44 @@ function presensiAppData() {
 
         // Fungsi yang dipanggil saat form modal di-submit
         saveClass() {
-            console.log("Submitting class form...");
+            console.log("Submitting class form via Fetch...");
             const form = document.getElementById("classModalForm");
-            if (form) {
-                // Lakukan submit form secara manual
-                // Action dan Method sudah diatur saat modal dibuka
-                form.submit();
+            const formData = new FormData(form);
+            const url = form.action;
+            const method = document.getElementById('classModalMethod').value;
 
-                // Opsional: Anda bisa menonaktifkan tombol simpan di sini
-                // atau menampilkan indikator loading
-            } else {
-                console.error(
-                    "Form Modal Kelas (#classModalForm) tidak ditemukan saat save!"
-                );
-            }
+            // Clear previous errors
+            document.getElementById('nama_kelas_error').textContent = '';
+            document.getElementById('nama_kelas').classList.remove('border-red-500');
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'X-CSRF-TOKEN': formData.get('_token'),
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else if (response.status === 422) {
+                    return response.json().then(data => {
+                        if (data.errors && data.errors.nama_kelas) {
+                            const errorElement = document.getElementById('nama_kelas_error');
+                            const inputElement = document.getElementById('nama_kelas');
+                            errorElement.textContent = data.errors.nama_kelas[0];
+                            inputElement.classList.add('border-red-500');
+                        }
+                    });
+                } else {
+                    // Handle other errors
+                    console.error('An unexpected error occurred.');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
         },
 
         // ... (sisa fungsi Alpine lainnya jika ada) ...

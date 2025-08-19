@@ -22,18 +22,27 @@
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                @if ($kela->is_active ?? true)
-                    <form action="{{ route('admin.classes.deactivateWithStudents', $kela) }}" method="POST"
-                        onsubmit="return confirm('Nonaktifkan kelas dan seluruh siswa?');">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                            class="btn-danger px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 text-sm font-medium">Nonaktifkan
-                            Kelas & Siswa</button>
-                    </form>
-                @else
-                    <span class="text-red-600 font-semibold">Kelas Nonaktif</span>
-                @endif
+                {{-- <form action="{{ route('admin.classes.deactivateWithStudents', $kela) }}" method="POST"
+                    onsubmit="return confirm('Nonaktifkan kelas dan seluruh siswa?');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="btn-danger px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 text-sm font-medium">Nonaktifkan
+                        Kelas & Siswa</button>
+                </form> --}}
+                {{-- <form action="{{ route('admin.classes.bulkUpdateStudents', $kela) }}" method="POST"
+                    onsubmit="return confirm('Aktifkan semua siswa di kelas ini?');">
+                    @csrf
+                    <input type="hidden" name="bulk_action" value="activate">
+                    @foreach ($students->where('is_active', false) as $siswa)
+                        <input type="hidden" name="siswa_ids[]" value="{{ $siswa->id }}">
+                    @endforeach
+                    <button type="submit"
+                        class="btn-success px-4 py-2 rounded text-white bg-green-600 hover:bg-green-700 text-sm font-medium"
+                        @if ($students->where('is_active', false)->count() == 0) disabled @endif>
+                        Aktifkan Semua Siswa
+                    </button>
+                </form> --}}
             </div>
         </div>
 
@@ -97,7 +106,7 @@
                     </div>
                     <div x-show="selectedBulkAction === 'move_class'" x-transition class="flex-grow w-full sm:w-auto">
                         <label for="target_kelas_dropdown" class="form-label">Pilih Kelas Tujuan:</label>
-                        <select name="target_kelas_id" id="target_kelas_dropdown" class="form-select">
+                        <select name="target_kelas_id" id="target_kelas_dropdown" class="form-select" x-model="targetKelasId">
                             <option value="">-- Pilih Kelas Tujuan --</option>
                             @foreach ($allKelas as $kelasOption)
                                 @if ($kelasOption->id !== $kela->id)
@@ -109,8 +118,7 @@
                 </div>
                 <div class="border-b pb-4 mb-4">
                     <button type="submit"
-                        x-bind:disabled="selectedSiswaIds.length === 0 || !selectedBulkAction || (selectedBulkAction === 'move_class' &&
-                            !document.getElementById('target_kelas_dropdown').value)"
+                        x-bind:disabled="selectedSiswaIds.length === 0 || !selectedBulkAction || (selectedBulkAction === 'move_class' && !targetKelasId)"
                         class="btn-primary w-400 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed">
                         Terapkan Aksi ke <span x-text="selectedSiswaIds.length"> </span> Siswa Terpilih
                     </button>
@@ -193,6 +201,7 @@
                 selectedSiswaIds: [],
                 selectAll: false,
                 selectedBulkAction: '',
+                targetKelasId: '',
                 // ID siswa yang ditampilkan (dari PHP)
                 allDisplayedStudentIds: @json($students->pluck('id')->map(fn($id) => (string) $id)),
 
@@ -204,45 +213,11 @@
                 },
 
                 init() {
-                    // Kode untuk mengontrol tampilan dropdown kelas tujuan berdasarkan pilihan aksi massal
-                    const bulkActionSelect = document.getElementById('bulk_action_dropdown');
-                    const targetKelasDiv = document.querySelector(
-                        '[x-show="selectedBulkAction === \'move_class\'"]');
-                    const targetKelasSelect = document.getElementById('target_kelas_dropdown');
-
-                    if (bulkActionSelect && targetKelasDiv && targetKelasSelect) {
-                        this.$watch('selectedBulkAction', value => {
-                            if (value === 'move_class') {
-                                targetKelasSelect.setAttribute('required', 'required');
-                            } else {
-                                targetKelasSelect.removeAttribute('required');
-                                targetKelasSelect.value = '';
-                            }
-                        });
-                        if (this.selectedBulkAction === 'move_class') {
-                            targetKelasSelect.setAttribute('required', 'required');
-                        } else {
-                            targetKelasSelect.removeAttribute('required');
+                    this.$watch('selectedBulkAction', value => {
+                        if (value !== 'move_class') {
+                            this.targetKelasId = '';
                         }
-                    }
-
-                    // Pastikan hidden siswa_ids[] ikut submit form massal
-                    const form = this.$refs.bulkActionForm;
-                    if (form) {
-                        form.addEventListener('submit', (e) => {
-                            // Hapus input siswa_ids[] lama
-                            form.querySelectorAll('input[name=\'siswa_ids[]\']').forEach(el =>
-                                el.remove());
-                            // Tambahkan input siswa_ids[] baru
-                            this.selectedSiswaIds.forEach(id => {
-                                const input = document.createElement('input');
-                                input.type = 'hidden';
-                                input.name = 'siswa_ids[]';
-                                input.value = id;
-                                form.appendChild(input);
-                            });
-                        });
-                    }
+                    });
 
                     this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') {

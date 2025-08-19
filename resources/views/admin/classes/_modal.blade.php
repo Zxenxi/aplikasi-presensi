@@ -19,7 +19,8 @@
                 <div class="form-group">
                     <label for="nama_kelas" class="form-label">Nama Kelas <span class="text-red-500">*</span></label>
                     <input type="text" id="nama_kelas" name="nama_kelas" x-model="currentClass.nama" required
-                        class="form-input" placeholder="Contoh: 10 IPA 1">
+                        class="form-input" placeholder="Contoh: 10 TJKT 2020">
+                    <div id="nama_kelas_error" class="text-red-500 text-xs mt-1"></div>
                 </div>
 
                 {{-- Tingkat --}}
@@ -39,14 +40,19 @@
                 <div class="form-group">
                     <label for="jurusan" class="form-label">Jurusan</label>
                     <input type="text" id="jurusan" name="jurusan" x-model="currentClass.jurusan"
-                        class="form-input" placeholder="Contoh: IPA, IPS, Bahasa, Umum (Opsional)">
+                        class="form-input" list="jurusan-list" placeholder="Ketik atau pilih jurusan...">
+                    <datalist id="jurusan-list">
+                        <option value="Akuntansi">
+                        <option value="Pemasaran">
+                        <option value="TJKT">
+                        <option value="Farmasi">
+                        <option value="Perkantoran">
+                    </datalist>
                 </div>
 
                 {{-- Jumlah Siswa (Hanya Tampilan di Modal Edit) --}}
-                {{-- Jumlah Siswa (Hanya Tampilan di Modal Edit) --}}
                 <div class="form-group" x-show="isEditingClass && currentClass.jumlahSiswa !== undefined">
                     <label class="form-label">Jumlah Siswa Saat Ini</label>
-                    {{-- Gunakan elemen <p> dan direktif x-text dari Alpine untuk menampilkan data --}}
                     <p class="text-sm text-gray-600 pt-1" x-text="currentClass.jumlahSiswa"></p>
                 </div>
 
