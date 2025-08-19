@@ -130,8 +130,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/classes/promote', [AdminKelasController::class, 'showPromotionForm'])->name('classes.promotionForm');
                 Route::post('/classes/promote', [AdminKelasController::class, 'processPromotion'])->name('classes.processPromotion');
                 Route::get('/classes/{class}/show', [AdminKelasController::class, 'show'])->name('classes.show');
+                // Route::post('/classes/{class}/bulk-update-students', [AdminKelasController::class, 'bulkUpdateStudents'])->name('classes.bulkUpdateStudents');
                 Route::post('/classes/{class}/bulk-update-students', [AdminKelasController::class, 'bulkUpdateStudents'])->name('classes.bulkUpdateStudents');
-
                 // Settings
                 Route::get('/settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
                 Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');

@@ -159,68 +159,47 @@ class KelasController extends Controller
     /**
      * Handle bulk actions for students in a class.
      */
-    public function bulkUpdateStudents(Request $request, Kelas $class)
-    {
-        $currentUser = Auth::user();
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Akses Ditolak.');
-        }
+ // app/Http/Controllers/Admin/KelasController.php
 
-        $validated = $request->validate([
-            'bulk_action' => 'required|string|in:activate,deactivate,move_class',
-            'siswa_ids' => 'required|array|min:1',
-            'siswa_ids.*' => 'integer|exists:users,id',
-            'target_kelas_id' => 'required_if:bulk_action,move_class|exists:kelas,id',
-        ], [
-            'bulk_action.required' => 'Aksi massal harus dipilih.',
-            'siswa_ids.required' => 'Tidak ada siswa yang dipilih.',
-            'siswa_ids.array' => 'Format data siswa tidak valid.',
-            'target_kelas_id.required_if' => 'Kelas tujuan harus dipilih untuk aksi pindah kelas.',
-        ]);
+    // app/Http/Controllers/Admin/KelasController.php
 
-        $siswaIds = $validated['siswa_ids'];
+// app/Http/Controllers/Admin/KelasController.php
 
-        DB::beginTransaction();
-        try {
-            $studentsToUpdate = User::whereIn('id', $siswaIds)->where('kelas_id', $class->id)->get();
+public function bulkUpdateStudents(Request $request, Kelas $class)
+{
+    // 1. Validasi input yang masuk
+    $validated = $request->validate([
+        'bulk_action' => 'required|string|in:activate,deactivate',
+        'siswa_ids' => 'required|array|min:1',
+        'siswa_ids.*' => 'integer|exists:users,id', // Memastikan semua ID ada di tabel users
+    ]);
 
-            foreach ($studentsToUpdate as $student) {
-                if ($validated['bulk_action'] === 'activate') {
-                    $student->is_active = true;
-                    $student->save();
-                } elseif ($validated['bulk_action'] === 'deactivate') {
-                    if ($student->id !== $currentUser->id) {
-                        $student->is_active = false;
-                        $student->save();
-                    }
-                } elseif ($validated['bulk_action'] === 'move_class') {
-                    $student->kelas_id = $validated['target_kelas_id'];
-                    $student->save();
-                }
-            }
+    $siswaIds = $validated['siswa_ids'];
+    $action = $validated['bulk_action'];
 
-            DB::commit();
+    // 2. Tentukan status boolean berdasarkan aksi yang dipilih
+    // Jika aksinya 'activate', maka $newStatus akan menjadi true.
+    // Jika aksinya 'deactivate', maka $newStatus akan menjadi false.
+    $newStatus = ($action === 'activate');
 
-            $selectedCount = count($siswaIds);
+    try {
+        // 3. Lakukan update ke database dalam satu query yang efisien
+        $updateCount = User::where('kelas_id', $class->id)
+                            ->whereIn('id', $siswaIds)
+                            ->update(['is_active' => $newStatus]);
 
-            if ($validated['bulk_action'] === 'move_class') {
-                $targetKelas = Kelas::find($validated['target_kelas_id']);
-                return redirect()->route('admin.classes.show', ['class' => $class])
-                    ->with('success', "$selectedCount siswa berhasil dipindahkan ke kelas {$targetKelas->nama_kelas}.");
-            }
-
-            $actionFriendlyName = $validated['bulk_action'] === 'activate' ? 'diaktifkan' : 'dinonaktifkan';
-            $redirectFilter = $validated['bulk_action'] === 'activate' ? '1' : '0';
-
-            return redirect()->route('admin.classes.show', [
-                'class' => $class,
-                'status_siswa' => $redirectFilter
-            ])->with('success', "$selectedCount siswa berhasil {$actionFriendlyName}.");
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Kesalahan saat aksi massal siswa: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat memproses aksi massal.');
-        }
-    }
+        // 4. Berikan feedback ke admin
+        if ($updateCount > 0) {
+            $actionText = $newStatus ? 'diaktifkan': 'dinonaktifkan';
+return back()->with('success', "$updateCount siswa berhasil {$actionText}.");
+} else {
+// Ini terjadi jika semua siswa yang dipilih sudah memiliki status yang sama
+// dengan aksi yang dijalankan (misal: mencoba menonaktifkan siswa yang sudah nonaktif).
+return back()->with('info', 'Tidak ada siswa yang diperbarui. Status mereka mungkin sudah sesuai dengan aksi yang dipilih.');
+}} catch (\Exception $e) {
+    // 5. Tangani jika terjadi error pada database
+    Log::error('Gagal melakukan aksi massal siswa: ' . $e->getMessage());
+    return back()->with('error', 'Terjadi kesalahan pada server saat mencoba memperbarui data siswa.');
+}
+}
 }

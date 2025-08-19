@@ -56,10 +56,11 @@
         {{-- Using $kela --}}
         {{-- 4. BULK ACTION FORM --}}
         <form method="POST" action="{{ route('admin.classes.bulkUpdateStudents', $kela) }}" id="bulkActionForm"
-            x-ref="bulkActionForm">
+            x-ref="bulkActionForm"
+            onsubmit="return confirm('Anda yakin ingin menerapkan aksi ini pada siswa yang dipilih?');">
             @csrf
 
-            {{-- Hidden inputs: one per siswa terpilih --}}
+            {{-- Hidden inputs untuk siswa yang dipilih, dikelola oleh AlpineJS --}}
             <template x-for="id in selectedSiswaIds" :key="id">
                 <input type="hidden" name="siswa_ids[]" :value="id">
             </template>
