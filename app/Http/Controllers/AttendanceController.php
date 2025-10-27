@@ -41,7 +41,7 @@ class AttendanceController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
         $settings = Setting::firstOrFail();
         $now = Carbon::now('Asia/Jakarta');
         $currentTime = $now->toTimeString('minute'); // Format HH:MM
@@ -54,8 +54,8 @@ class AttendanceController extends Controller
         }
 
          // 2. Cek lagi waktu presensi
-        $startTime = Carbon::parse($settings->attendance_start_time);
-        $endTime = Carbon::parse($settings->attendance_end_time);
+        $startTime = Carbon::parse($settings->attendance_start_time, 'Asia/Jakarta');
+        $endTime = Carbon::parse($settings->attendance_end_time, 'Asia/Jakarta');
         if (!$now->between($startTime, $endTime)) {
              return redirect()->route('attendance.history')
                              ->with('error', 'Waktu presensi sudah habis.');
@@ -106,7 +106,7 @@ class AttendanceController extends Controller
         }
 
         // 3. Tentukan Status Presensi (Hadir/Telat)
-        $lateTime = Carbon::parse($settings->late_threshold_time);
+        $lateTime = Carbon::parse($settings->late_threshold_time, 'Asia/Jakarta');
         $status = $now->lte($lateTime) ? 'Hadir' : 'Telat';
 
         // --- Simpan ke Database ---
